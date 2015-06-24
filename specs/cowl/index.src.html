@@ -55,6 +55,10 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
     text: path; for: URL; url: concept-url-path
     text: port; for: URL; url: concept-url-port
     text: scheme; for: URL; url: concept-url-scheme
+spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
+  type: dfn
+    text: JSON object; url: section-2
+    text: JSON stringification; url: section-2
 </pre>
 
 <!-- BIBLIOGRAPHY -->
@@ -115,7 +119,7 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
   COWL enforces such policies by confining code, at the
   <a>context</a>-level, according to the sensitivity of the data the
   code has observed. To reap the greatest benefits of COWL, authors
-  will need to compartmentalized applications into multiple contexts
+  will need to compartmentalize applications into multiple contexts
   (e.g., <a>iframe</a> or <a>light-weight Workers</a>). For example,
   untrusted libraries should be loaded in <a>light-weight Workers</a>
   instead of directly into a page.
@@ -195,11 +199,11 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
   <section>
     <h3 id="trust-model">Trust Model</h3>
     COWL provides developers with a way of imposing restrictions on
-    how untrusted code can disseminated sensitive data.  However,
+    how untrusted code can disseminate sensitive data.  However,
     authors should not share sensitive data with malicious code, since
     such code may be able to exploit covert channels, which are present
     in most browsers, to leak the data.  COWL can only prevent
-    information leakage from code that (e.g., is buggy and) exploits
+    information leakage from code that (e.g., is buggy and) uses
     overt communication channels.
 
     Note, COWL should be used as an additional defense layer to other
@@ -211,8 +215,62 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
 
 <!-- Big Text: definitions -->
 <section>
-  <h2 id="key-concepts-and-terminology">Key Concepts and Terminology</h2>
+  <h2 id="key-concepts">Key Concepts and Terminology</h2>
   <ol>
+    <li>
+      An <dfn>origin label</dfn>, or more succinctly a
+      <dfn>label</dfn>, encodes either a confidentiality or integrity
+      security policy. Labels can be associated with <a>contexts</a>
+      and <a>JSON objects</a>.
+
+      When associated with a <a>context</a>, the label restricts the
+      origins that the context can communicate with, as detailed in
+      [[#context-labels]].
+
+      <div class="example">
+       When associate with a context, the confidentiality label 
+       <code>
+          <a interface>Label</a>('https://a.com').<a>or</a>('https://b.com')
+       </code>
+       restricts the context to sending data to
+       <code>https://a.com</code> or <code>https://b.com</code>, but
+       no other origins.
+       The context label reflects the fact the context may contain data
+       that is sensitive to either <code>https://a.com</code> or
+       <code>https://b.com</code>; it is thus only safe for it to
+       communicate <em>to</em> these origins.
+
+       Note, because the context can communicate data to either origin,
+       another context associated with the more-strict
+       <code><a interface>Label</a>('https://a.com')</code> label cannot
+       send it data. Doing so may allow for data confidential
+       to <code>https://a.com</code> to be leaked to <code>https://b.com</code>.
+      </div>
+
+      When associated with a <a>JSON object</a>, a confidentiality
+      label specifies the origins to whom the object is sensitive,
+      while an integrity label specifies the origins that
+      endorse the object. [[#object-labels]] defines how labels are
+      associated with objects.
+
+      <div class="example">
+        Suppose <code>https://example.com</code> receives a <a>JSON
+        object</a> (e.g., via <a>postMessage()</a>) and has the
+        following labels:
+        
+        * Confidentiality label: <code><a interface>Label</a>('https://example.com')</code>.
+        This label indicates that the object is confidential to
+        <code>https://example.com</code>.
+
+        * Integrity label: <code><a interface>Label</a>('https://a.com')</code>.
+        This label indicates that the object has been endorsed by
+        <code>https://a.com</code>. If
+        <code>https://example.com</code> received the message from
+        <code>https://b.com</code>, the label reflects the fact that the
+        object was not tampered by <code>https://b.com</code>.
+
+      </div>
+    </li>
     <li>
       A label is in <dfn>normal form</dfn> if reducing it according to
       the <a>reduce to label normal form</a> algorithm produces the
@@ -228,6 +286,18 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
       algorithm on the <a>normal form</a>s of <var>A</var> and
       <var>B</var> returns <code>true</code>.
     </li>
+    <li>
+      <dfn>current confidential label</dfn>
+    </li>
+    <li>
+      <dfn>current integrity label</dfn>
+    </li>
+    <li>
+      <dfn>current confidential clearance</dfn>
+    </li>
+    <li>
+      <dfn>current integrity clearance</dfn>
+    </li>
   </ol>
 </section>
 
@@ -237,13 +307,13 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
 
   <section>
     <h3 id="label">Label interface</h3>
-    A <a>Label</a> must have an internal <dfn>label set</dfn>, which is
+    A <a interface>Label</a> must have an internal <dfn>label set</dfn>, which is
     a non-empty [[!ECMA-262]] <code>Set</code> of <a>disjunction set</a>s.
 
     A <dfn>disjunction set</dfn> is an [[!ECMA-262]]
-    <code>Set</code> of <a>URL</a>s corresponding to <a>origin</a>s.
+    <code>Set</code> of <a>origin</a> <a>URL</a>s.
 
-    A label is said to an <dfn>empty label</dfn> if its <a>label
+    A label is said to be an <dfn>empty label</dfn> if its <a>label
       set</a> contains a single, empty <a>disjunction set</a>.
 
     <pre class="idl">
@@ -260,6 +330,11 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
       };
     </pre>
 
+    ISSUE: Current WebIDL implementation requires and underscore for
+    certain identifiers. Can we rename <code>_or</code> to
+    <code>or</code>?
+
+    <h4>Constructors</h4>
     <dl dfn-for="Label">
       <dt><dfn constructor>Label()</dfn></dt>
       <dd>
@@ -275,6 +350,9 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
         contains the <a>URL</a> corresponding to the <a>origin</a> of the <a
         argument for="Label/Label(origin)">origin</a> parameter.
       </dd>
+    </dl>
+    <h4>Methods</h4>
+    <dl dfn-for="Label">
       <dt><dfn method title="equals(other)">equals(Label other)</dfn></dt>
       <dd>
         Returns <code>true</code> if the <a>Label</a> on which the method
@@ -311,8 +389,8 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
     mathematical representation instead of ECMA-262 Sets?
 
     <div class="example">
-      Examples of creating confidentiality labels.
-      <pre>
+      Examples creating confidentiality labels.
+      <pre><code>
       // Create empty label. This corresponds to public data.
       var empty = new Label();
 
@@ -324,18 +402,16 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
 
       // Create a label that may used to protect data that is
       // sensitive to both a.com and b.com
-      var aANDB = new Label('https://a.com').and('https://b.com');
+      var aANDb = new Label('https://a.com').and('https://b.com');
 
       // Create a label that may used to protect data that either
       // a.com or b.com can read
-      var aORB = new Label('https://a.com').or('https://b.com');
-      </pre>
-
-      Examples of comparing confidentiality labels.
-
-      <pre>
+      var aORb = new Label('https://a.com').or('https://b.com');
+      </code></pre>
+      Examples comparing the above confidentiality labels.
+      <pre><code>
       // a.com data is more sensitive than public data:
-      a.subsumes(empty) === true;
+      a.<a method for="Label">subsumes</a>(empty) === true;
       b.subsumes(empty) === true;
 
       // Data that is sensitive to a.com and b.com is more sensitive
@@ -352,10 +428,85 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
       // sensitive than data that is sensitive to a.com alone
       a.subsumes(aOrb) === true;
       b.subsumes(aOrb) === true;
-      </pre>
+      </code></pre>
     </div>
+  </section>
+
+  <section>
+    <h3 id="context-labels">Labeling Contexts</h3>
+  </section>
+
+  <section>
+    <h3 id="object-labels">Labeling JSON Objects</h3>
+
+    A <a interface>LabeledJSON</a> must have an internal <dfn>protected
+      JSON object</dfn>, a confidentiality <a>label</a>, and an
+    integrity <a>label</a>.
+
+    <pre class="idl">
+    dictionary CILabel {
+      Label? confidentiality;
+      Label? integrity;
+    };
+
+    [Constructor(object json, CILabel labels)]
+    interface LabeledJSON {
+      [Pure] readonly attribute Label confidentiality;
+      [Pure] readonly attribute Label integrity;
+
+      [GetterThrows] readonly attribute object json;
+    };
+    </pre>
+    <h4>Constructors</h4>
+    <dl dfn-for="LabeledJSON">
+      <dt><dfn constructor>LabedJSON(json, labels)</dfn></dt>
+      <dd>
+
+      Let <var>conf</var> be the <a dict-member for="CILabel">confidentiality</a> member
+      of the <a argument for="LabeledJSON/LabeledJSON(json, labels)">labels</a> parameter, if it is set.
+      Otherwise, let <var>conf</var> be the <a>current confidentiality label</a>.
+      
+      Let <var>int</var> be the <a dict-member for="CILabel">integrity</a> member
+      of the <a argument for="LabeledJSON/LabeledJSON(json, labels)">labels</a> parameter, if it is set.
+      Otherwise, let <var>int</var> be the <a>current integrity label</a>.
+
+
+      </dd>
+    </dl>
+    <h4>Attributes</h4>
+    <dl dfn-for="LabeledJSON">
+      <dt><dfn attribute title="LabeledJSON/confidentiality">confidentiality</dfn></dt>
+      <dd>
+        On getting, the user agent must return the <a
+        interface>LabeledJSON</a>'s confidentiality label.
+      </dd>
+      <dt><dfn attribute title="LabeledJSON/integrity">integrity</dfn></dt>
+      <dd>
+        On getting, the user agent must return the <a
+        interface>LabeledJSON</a>'s integrity label.
+      </dd>
+      <dt><dfn attribute title="LabeledJSON/json">json</dfn></dt>
+      <dd>
+        On getting, the user agent must follow the following steps:
+
+        1.  If the <a>current confidentiality clearance</a> does not
+        <a>subsume</a> the <a interface>LabeledJSON</a>'s
+        confidentiality label, throw a <a>ClearanceException</a>.
+
+        2.  If the <a interface>LabeledJSON</a>'s integrity label does
+        not <a>subsume</a> the <a>current integrity clearance</a>, throw
+        a <a>ClearanceException</a>.
+
+        3. Apply the <a>taint current context</a> algorithm to the <a
+        interface>LabeledJSON</a>'s confidentiality and integrity labels.
+
+        4. Return the <a interface>LabeledJSON</a>'s <a>protected JSON
+           object</a>.
+      </dd>
+    </dl>
 
   </section>
+
 </section>
 
 <!-- Big Text: algorithms -->
@@ -375,7 +526,17 @@ spec: URL; urlPrefix: http://www.w3.org/TR/url/
       check</dfn> algorithm takes a two labels <var>A</var> and
     <var>B</var> and produces a boolean according to these steps:
 
-    ISSUE: describe the subsumsion algorithm
+    ISSUE: describe the subsumes algorithm
+
+  </section>
+  <section>
+    <h3 id="taint-context">Taint Current Context</h3> The <dfn>taint
+      current context</dfn> algorithm takes a two labels,
+    <var>confidentiality</var> and <var>integrity</var>, and updates
+    the <a>context labels</a> to allow for reading data labeled with
+    these labels.
+
+    ISSUE: describe taint
 
   </section>
 </section>

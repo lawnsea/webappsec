@@ -43,6 +43,18 @@ spec: HTML5; urlPrefix: http://www.w3.org/TR/html5/
     urlPrefix: browsers.html
       text: context; url: windows
       text: browsing context; url: windows
+spec: RFC6454; urlPrefix: https://tools.ietf.org/html/rfc6454
+  type: dfn
+    text: origin; url: section-3.2
+    text: globally unique identifier; url: section-2.3
+spec: URL; urlPrefix: http://www.w3.org/TR/url/
+  type: interface
+    text: URL; url: concept-url
+  type: attribute
+    text: host; for: URL; url: concept-url-host
+    text: path; for: URL; url: concept-url-path
+    text: port; for: URL; url: concept-url-port
+    text: scheme; for: URL; url: concept-url-scheme
 </pre>
 
 <!-- BIBLIOGRAPHY -->
@@ -71,14 +83,13 @@ spec: HTML5; urlPrefix: http://www.w3.org/TR/html5/
 
   <em>This section is not normative.</em>
 
-  Sites and applications on the web are conglomerations of JavaScript
-  written by multiple authors. Authors routinely incorporate
-  third-party scripts into their applications and share user data with
-  third-party services (e.g., as part of a <em>mashup</em>).
-  Unfortunately, in the existing model, authors put the user's
-  data confidentiality and integrity at risk when incorporating
-  untrusted third-party code or sharing data with untrusted
-  third-party services.
+  Modern Web applications are conglomerations of JavaScript written by
+  multiple authors. Authors routinely incorporate third-party scripts
+  into their applications and share user data with third-party
+  services (e.g., as part of a <em>mashup</em>).  Unfortunately, in
+  the existing model, authors put the user's data confidentiality and
+  integrity at risk when incorporating such untrusted third-party code
+  or sharing data with untrusted third-party services.
 
   Mechanisms such as CORS and CSP can be used to mitigate these risks
   by giving authors control over whom they share data with. But, once
@@ -86,26 +97,28 @@ spec: HTML5; urlPrefix: http://www.w3.org/TR/html5/
   how the code that was "granted access" can further disseminate the
   data.
 
-  This document specifies an extension to the current model,
-  Confinement with Origin Web Labels (COWL), which allows authors to
-  specify access control policies on data (including content) in terms
-  of origin <a>labels</a>.  These policies are enforced in a mandatory
-  fashion, transitively, even once code has access to the data.  For
-  example, with COWL, the author of <code>https://example.com/</code>
-  can specify that a password is confidential to
-  <code>https://example.com/</code> (and thus should only be disclosed
-  to <code>https://example.com/</code>) before sharing it with a
-  third-party password strength checking service. In turn, COWL
-  ensures that the third-party service, which necessarily computes on
-  the password, is confined and respects the policy on the password,
-  i.e., it cannot disclose the password to any origin other than
-  <code>https://example.com/</code>.
+  This document specifies an extension to the current model called
+  Confinement with Origin Web Labels (COWL). COWL provides authors
+  with APIs for specifying access control policies on data (including
+  content) in terms of <a>origin</a> <a>labels</a>.  These policies are
+  enforced in a mandatory fashion, transitively, even once code has
+  access to the data.  For example, with COWL, the author of
+  <code>https://example.com/</code> can specify that a password is
+  confidential to <code>https://example.com/</code> (and thus should
+  only be disclosed to <code>https://example.com/</code>) before
+  sharing it with a third-party password strength checking service. In
+  turn, COWL ensures that the third-party service, which necessarily
+  computes on the password, is confined and respects the policy on the
+  password, i.e., it cannot disclose the password to any origin other
+  than <code>https://example.com/</code>.
 
   COWL enforces such policies by confining code, at the
-  <a>context</a>-level, according to the sensitivity of the data it
-  has observed. To reap the greatest benefits of COWL, authors will
-  need to compartmentalized applications into multiple contexts (e.g.,
-  <a>iframe</a> or <a>light-weight Workers</a>).
+  <a>context</a>-level, according to the sensitivity of the data the
+  code has observed. To reap the greatest benefits of COWL, authors
+  will need to compartmentalized applications into multiple contexts
+  (e.g., <a>iframe</a> or <a>light-weight Workers</a>). For example,
+  untrusted libraries should be loaded in <a>light-weight Workers</a>
+  instead of directly into a page.
 
   COWL is intended to be used as a defense-in-depth mechanism that can
   restrict how untrusted code handles sensitive data. To prevent
@@ -196,10 +209,173 @@ spec: HTML5; urlPrefix: http://www.w3.org/TR/html5/
   </section>
 </section>
 
+<!-- Big Text: definitions -->
+<section>
+  <h2 id="key-concepts-and-terminology">Key Concepts and Terminology</h2>
+  <ol>
+    <li>
+      A label is in <dfn>normal form</dfn> if reducing it according to
+      the <a>reduce to label normal form</a> algorithm produces the
+      same value.
+    </li>
+    <li>
+      Two labels are <dfn>equivalent</dfn> if their <a>normal form</a>
+      values are equal.
+    </li>
+    <li>
+      A label <var>A</var> <dfn>subsumes</dfn> another label
+      <var>B</var> if the result of running the <a>subsumes check</a>
+      algorithm on the <a>normal form</a>s of <var>A</var> and
+      <var>B</var> returns <code>true</code>.
+    </li>
+  </ol>
+</section>
+
 <!-- Big Text: framework -->
 <section>
   <h2 id="framework">Framework</h2>
 
-  <em>This section is not normative.</em>
+  <section>
+    <h3 id="label">Label interface</h3>
+    A <a>Label</a> must have an internal <dfn>label set</dfn>, which is
+    a non-empty [[!ECMA-262]] <code>Set</code> of <a>disjunction set</a>s.
 
+    A <dfn>disjunction set</dfn> is an [[!ECMA-262]]
+    <code>Set</code> of <a>URL</a>s corresponding to <a>origin</a>s.
+
+    A label is said to an <dfn>empty label</dfn> if its <a>label
+      set</a> contains a single, empty <a>disjunction set</a>.
+
+    <pre class="idl">
+      [Constructor, Constructor(DOMString origin)]
+      interface Label {
+        boolean equals(Label other);
+        boolean subsumes(Label other);
+
+        Label and(Label other);
+        Label _or(Label other);
+
+        object toJSON();
+        [Throws] static Label fromJSON(object json);
+      };
+    </pre>
+
+    <dl dfn-for="Label">
+      <dt><dfn constructor>Label()</dfn></dt>
+      <dd>
+        Returns a new <a>empty label</a>.
+      </dd>
+      <dt><dfn constructor>Label(DOMString origin)</dfn></dt>
+      <dd>
+        If the <a argument for="Label/Label(origin)">origin</a> is not
+        a <a>URL</a>, the constructor MUST throw a
+        <code>TypeError</code> exception [[!ECMA-262]].
+        Otherwise, it returns a new <a>Label</a> that contains a <a>label
+        set</a> of a single <a>disjunction set</a>, which itself
+        contains the <a>URL</a> corresponding to the <a>origin</a> of the <a
+        argument for="Label/Label(origin)">origin</a> parameter.
+      </dd>
+      <dt><dfn method title="equals(other)">equals(Label other)</dfn></dt>
+      <dd>
+        Returns <code>true</code> if the <a>Label</a> on which the method
+        has been called is <a>equivalent</a> to the <a argument
+        for="Label/equals(other)">other</a>
+        parameter; otherwise it returns <code>false</code>
+      </dd>
+      <dt><dfn method title="subsumes(other)">subsumes(Label other)</dfn></dt>
+      <dd>
+        Returns <code>true</code> if the <a>Label</a> on which the method
+        has been called <a>subsumes</a> the <a argument
+        for="Label/subsumes(other)">other</a>
+        parameter; otherwise it returns <code>false</code>
+      </dd>
+      <dt><dfn method title="and(other)">and(Label other)</dfn></dt>
+      <dd>
+        Returns a new <a>Label</a>, in <a>normal form</a>, which is
+        <a>equivalent</a> to adding the <a argument
+        for="Label/and(other)">other</a>'s <a>label set</a> to the
+        <a>label set</a> of the <a>Label</a> on which the method was
+        invoked.
+      </dd>
+      <dt><dfn method title="_or(other)">_or(Label other)</dfn></dt>
+      <dd>
+        Returns a new <a>Label</a>, in <a>normal form</a>, which is
+        <a>equivalent</a> to adding each <a>disjunction set</a> of <a
+        argument for="Label/_or(other)">other</a>'s <a>label set</a>
+        to each <a>disjunction set</a> of the <a>label set</a> of the
+        <a>Label</a> on which the method was invoked.
+      </dd>
+    </dl>
+
+    ISSUE: describe the other methods and constructor; should we use
+    mathematical representation instead of ECMA-262 Sets?
+
+    <div class="example">
+      Examples of creating confidentiality labels.
+      <pre>
+      // Create empty label. This corresponds to public data.
+      var empty = new Label();
+
+      // Create a label that may used to protect data sensitive to a.com
+      var a = new Label('https://a.com');
+
+      // Create a label that may used to protect data sensitive to b.com
+      var a = new Label('https://b.com');
+
+      // Create a label that may used to protect data that is
+      // sensitive to both a.com and b.com
+      var aANDB = new Label('https://a.com').and('https://b.com');
+
+      // Create a label that may used to protect data that either
+      // a.com or b.com can read
+      var aORB = new Label('https://a.com').or('https://b.com');
+      </pre>
+
+      Examples of comparing confidentiality labels.
+
+      <pre>
+      // a.com data is more sensitive than public data:
+      a.subsumes(empty) === true;
+      b.subsumes(empty) === true;
+
+      // Data that is sensitive to a.com and b.com is more sensitive
+      // than data that is only sensitive to a.com
+      aANDb.subsumes(a) === true;
+      aANDb.subsumes(b) === true;
+
+      // Data that that is sensitive to a.com is not comparable to
+      // data that is sensitive to b.com
+      a.subsumes(b) === false;
+      b.subsumes(a) === false;
+
+      // Data that is sensitive to either a.com or b.com is less
+      // sensitive than data that is sensitive to a.com alone
+      a.subsumes(aOrb) === true;
+      b.subsumes(aOrb) === true;
+      </pre>
+    </div>
+
+  </section>
+</section>
+
+<!-- Big Text: algorithms -->
+<section>
+  <h2 id="algorithms">Algorithms</h2>
+  <section>
+    <h3 id="reduce-to-normal-form">Reduce to Label Normal Form</h3>
+    The <dfn>reduce to label normal form</dfn> algorithm takes a
+    <var>label</var> argument and produces a <a>Label</a> value
+    according to these steps:
+
+    ISSUE: describe the reduction algorithm
+
+  </section>
+  <section>
+    <h3 id="subsumes-check">Subsumes Check</h3> The <dfn>subsumes
+      check</dfn> algorithm takes a two labels <var>A</var> and
+    <var>B</var> and produces a boolean according to these steps:
+
+    ISSUE: describe the subsumsion algorithm
+
+  </section>
 </section>

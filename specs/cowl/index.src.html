@@ -1,0 +1,205 @@
+<h1>Confinement with Origin Web Labels</h1>
+<pre class="metadata">
+Status: ED
+Group: WebAppSec
+ED: https://w3c.github.io/webappsec/specs/cowl/
+Shortname: COWL
+Level: 1
+Editor: Deian Stefan, Stanford University, deian@cs.stanford.edu
+Abstract:
+  This specification defines an API for specifying privacy and
+  integrity policies on data, in the form of origin labels, and a
+  mechanism for confining code according to such policies.  This
+  allows Web application authors and server operators to shared data
+  with untrusted&mdash;buggy but not malicious&mdash;code (e.g., in a mashup
+  scenario) yet impose restrictions on how the code can share the data
+  further.
+     
+  In addition, this specification defines a light-weight, in-thread
+  Worker.  Combined with confinement, this allows developers to build
+  privilege-separated, compartmentalized applications.
+Indent: 2
+</pre>
+<pre class="anchors">
+spec: CORS; urlPrefix: http://www.w3.org/TR/cors/
+  type: dfn
+    text: CORS
+spec: WEBMESSAGING; urlPrefix: http://www.w3.org/TR/webmessaging/
+  type: method
+    text: postMessage(); url: dom-window-postmessage
+spec: WORKERS; urlPrefix: http://www.w3.org/TR/workers/
+  type: interface
+    text: Worker
+spec: CSP2; urlPrefix: https://www.w3.org/TR/CSP2/
+  type: dfn
+    text: content-security-policy
+spec: HTML5; urlPrefix: http://www.w3.org/TR/html5/
+  type: element-attr
+    urlPrefix: embedded-content-0.html
+      text: sandbox; for: iframe; url: attr-iframe-sandbox
+  type: dfn
+    urlPrefix: embedded-content-0.html
+      text: iframe; url: the-iframe-element
+    urlPrefix: browsers.html
+      text: context; url: windows
+      text: browsing context; url: windows
+</pre>
+
+<!-- BIBLIOGRAPHY -->
+<pre class="biblio">
+{
+  "URL": {
+    "authors": [ "Anne van Kesteren", "Sam Ruby" ],
+    "title": "URL",
+    "href": "http://www.w3.org/TR/url",
+    "status": "WD",
+    "publisher": "W3C"
+  },
+  "WEBIDL2": {
+    "authors": [ "Cameron McCormack", "Boris Zbarsky" ],
+    "title": "Web IDL (Second Edition)",
+    "href": "https://heycam.github.io/webidl/",
+    "status": "ED",
+    "publisher": "W3C"
+  }
+}
+</pre>
+
+<!-- Big Text: intro -->
+<section>
+  <h2 id="intro">Introduction</h2>
+
+  <em>This section is not normative.</em>
+
+  Sites and applications on the web are conglomerations of JavaScript
+  written by multiple authors. Authors routinely incorporate
+  third-party scripts into their applications and share user data with
+  third-party services (e.g., as part of a <em>mashup</em>).
+  Unfortunately, in the existing model, authors put the user's
+  data confidentiality and integrity at risk when incorporating
+  untrusted third-party code or sharing data with untrusted
+  third-party services.
+
+  Mechanisms such as CORS and CSP can be used to mitigate these risks
+  by giving authors control over whom they share data with. But, once
+  data is shared, these mechanisms do not impose any restrictions on
+  how the code that was "granted access" can further disseminate the
+  data.
+
+  This document specifies an extension to the current model,
+  Confinement with Origin Web Labels (COWL), which allows authors to
+  specify access control policies on data (including content) in terms
+  of origin <a>labels</a>.  These policies are enforced in a mandatory
+  fashion, transitively, even once code has access to the data.  For
+  example, with COWL, the author of <code>https://example.com/</code>
+  can specify that a password is confidential to
+  <code>https://example.com/</code> (and thus should only be disclosed
+  to <code>https://example.com/</code>) before sharing it with a
+  third-party password strength checking service. In turn, COWL
+  ensures that the third-party service, which necessarily computes on
+  the password, is confined and respects the policy on the password,
+  i.e., it cannot disclose the password to any origin other than
+  <code>https://example.com/</code>.
+
+  COWL enforces such policies by confining code, at the
+  <a>context</a>-level, according to the sensitivity of the data it
+  has observed. To reap the greatest benefits of COWL, authors will
+  need to compartmentalized applications into multiple contexts (e.g.,
+  <a>iframe</a> or <a>light-weight Workers</a>).
+
+  COWL is intended to be used as a defense-in-depth mechanism that can
+  restrict how untrusted code handles sensitive data. To prevent
+  untrusted code from accessing data in the first place, authors should
+  still use discretionary access control mechanisms, such as CSP and
+  CORS.
+
+
+  <section>
+  <h3 id="goals">Goals</h3>
+
+  The goal of COWL is to provide authors with a means for protecting
+  the confidentiality and integrity of data that is shared with
+  untrusted, whether third-party or their own, code.  Existing
+  mechanisms (e.g., CORS and the <a>postMessage()</a> <a argument
+    for="postMessage()">targetOrigin</a> argument) provide a way for
+  restricting which origins may access (shared) data.  But, once
+  content has access to data it can usually disseminate it without
+  restrictions.  While CSP can be used to confine code, and thus
+  restrict how confidential data is disseminated, setting a correct
+  CSP policy (as to confine code) is difficult and limited to
+  content the author has control over. Indeed, sharing confidential
+  data (e.g., via cross-document messaging) implicitly requires the
+  author to trust the receiver not to leak the data, accidentally or
+  otherwise.  COWL provides a defense-in-depth option for
+  protecting data confidentiality and integrity.  In particular,
+  with COWL:
+
+  1. Authors should be able to specify confidentiality and integrity
+  policies on data in terms of origin labels: the origins to whom the
+  data is confidential and the origins that endorse the data.  This
+  allows authors to share sensitive data with third-party content and
+  impose restrictions on the origins with which it can communicate
+  once it inspects the sensitive data. Dually, it allows authors to
+  share data via intermediate content while retaining its integrity.
+
+  2. Authors should be able to run code with <em>least privilege</em>
+  by restricting how the code can disseminate sensitive data.
+
+  3. Authors should be able to <em>privilege separate</em>
+  applications by loading untrusted scripts in separate
+  <a>light-weight Workers</a> instead of inline <{script}> elements,
+  which have the same privileges as content.
+
+  </section>
+
+  <section>
+  <h3 id="examples">Use Cases/Examples</h3>
+  <h4 id="examples-checker">Untrusted library</h4>
+
+  ISSUE: describe password strength checker. Illustrates how
+  confidential password can be protected. Other concepts: light-weigh
+  Workers, fresh principals/privileges.
+
+  <h4 id="examples-mashup">Third-party mashup</h4>
+
+  ISSUE: describe client-side mint or encrypted document editor.
+
+  <h4 id="examples-leastpriv">Least-privileged content</h4>
+
+  ISSUE: describe how to drop privileges.
+
+  <h4 id="examples-privsep">Privilege separation</h4>
+
+  ISSUE: describe how page can be divided into components with
+  different privileges.
+
+  <h4 id="examples-isolation">User isolation</h4>
+
+  ISSUE: describe how to privileges can be delegated and used to
+  isolate different users of a web site.
+
+  </section>
+  <section>
+    <h3 id="trust-model">Trust Model</h3>
+    COWL provides developers with a way of imposing restrictions on
+    how untrusted code can disseminated sensitive data.  However,
+    authors should not share sensitive data with malicious code, since
+    such code may be able to exploit covert channels, which are present
+    in most browsers, to leak the data.  COWL can only prevent
+    information leakage from code that (e.g., is buggy and) exploits
+    overt communication channels.
+
+    Note, COWL should be used as an additional defense layer to other
+    security mechanisms such as CSP, SRI, CORS, and iframe <code><a
+    element-attr>sandbox</a></code>.
+
+  </section>
+</section>
+
+<!-- Big Text: framework -->
+<section>
+  <h2 id="framework">Framework</h2>
+
+  <em>This section is not normative.</em>
+
+</section>

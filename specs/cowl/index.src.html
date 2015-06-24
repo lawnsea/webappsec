@@ -292,12 +292,6 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <li>
       <dfn>current integrity label</dfn>
     </li>
-    <li>
-      <dfn>current confidential clearance</dfn>
-    </li>
-    <li>
-      <dfn>current integrity clearance</dfn>
-    </li>
   </ol>
 </section>
 
@@ -489,18 +483,10 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <dd>
         On getting, the user agent must follow the following steps:
 
-        1.  If the <a>current confidentiality clearance</a> does not
-        <a>subsume</a> the <a interface>LabeledJSON</a>'s
-        confidentiality label, throw a <a>ClearanceException</a>.
-
-        2.  If the <a interface>LabeledJSON</a>'s integrity label does
-        not <a>subsume</a> the <a>current integrity clearance</a>, throw
-        a <a>ClearanceException</a>.
-
-        3. Apply the <a>taint current context</a> algorithm to the <a
+        1. Apply the <a>taint current context</a> algorithm to the <a
         interface>LabeledJSON</a>'s confidentiality and integrity labels.
 
-        4. Return the <a interface>LabeledJSON</a>'s <a>protected JSON
+        2. Return the <a interface>LabeledJSON</a>'s <a>protected JSON
            object</a>.
       </dd>
     </dl>

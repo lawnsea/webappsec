@@ -532,16 +532,6 @@ object was not tampered by <code>https://b.com</code>.</p>
       <dfn data-dfn-type="dfn" data-noexport="" id="current-integrity-label">current integrity label<a class="self-link" href="#current-integrity-label"></a></dfn>
     
      
-    
-     <li>
-      <dfn data-dfn-type="dfn" data-noexport="" id="current-confidential-clearance">current confidential clearance<a class="self-link" href="#current-confidential-clearance"></a></dfn>
-    
-     
-    
-     <li>
-      <dfn data-dfn-type="dfn" data-noexport="" id="current-integrity-clearance">current integrity clearance<a class="self-link" href="#current-integrity-clearance"></a></dfn>
-    
-     
   
     </ol>
 </section>
@@ -823,20 +813,6 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
 
        <ol>
         <li data-md="">
-         <p>If the <a data-link-type="dfn">current confidentiality clearance</a> does not
-<a data-link-type="dfn" href="#subsumes">subsume</a> the <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a>’s
-confidentiality label, throw a <a data-link-type="dfn">ClearanceException</a>.</p>
-         
-
-
-        <li data-md="">
-         <p>If the <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a>’s integrity label does
-not <a data-link-type="dfn" href="#subsumes">subsume</a> the <a data-link-type="dfn" href="#current-integrity-clearance">current integrity clearance</a>, throw
-a <a data-link-type="dfn">ClearanceException</a>.</p>
-         
-
-
-        <li data-md="">
          <p>Apply the <a data-link-type="dfn" href="#taint-current-context">taint current context</a> algorithm to the <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a>’s confidentiality and integrity labels.</p>
          
 
@@ -991,9 +967,7 @@ a <a data-link-type="dfn">ClearanceException</a>.</p>
     </ul>
    <li>conformant server, <a href="#conformant-server">Unnumbered section</a>
    <li>conformant user agent, <a href="#conformant-user-agent">Unnumbered section</a>
-   <li>current confidential clearance, <a href="#current-confidential-clearance">2</a>
    <li>current confidential label, <a href="#current-confidential-label">2</a>
-   <li>current integrity clearance, <a href="#current-integrity-clearance">2</a>
    <li>current integrity label, <a href="#current-integrity-label">2</a>
    <li>disjunction set, <a href="#disjunction-set">3.1</a>
    <li>empty label, <a href="#empty-label">3.1</a>

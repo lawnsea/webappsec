@@ -275,7 +275,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     </li>
     <li>
       A label is in <dfn>normal form</dfn> if reducing it according to
-      the <a>reduce to label normal form</a> algorithm produces the
+      the <a>label normal form reduction</a> algorithm produces the
       same value.
     </li>
     <li>
@@ -284,7 +284,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     </li>
     <li>
       A label <var>A</var> <dfn>subsumes</dfn> another label
-      <var>B</var> if the result of running the <a>subsumes check</a>
+      <var>B</var> if the result of running the <a>label subsumtion</a>
       algorithm on the <a>normal form</a>s of <var>A</var> and
       <var>B</var> returns <code>true</code>.
     </li>
@@ -485,7 +485,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <a>current integrity label</a>.
 
       4. Let <var>canWrite</var> be the result of invoking the <a>write
-      guard</a> algorithm with the <var>conf</var> and <var>int</var> labels. 
+      check</a> algorithm with the <var>conf</var> and <var>int</var> labels. 
       
       5. If <var>canWrite</var> is <code>false</code>, the constructor
       MUST throw a <a spec="HTML5">SecurityError</a> exception
@@ -496,12 +496,9 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       set to <var>obj clone</var>, the confidentiality label set to
       <var>conf</var>, and the integrity
       label set to <var>int</var>.
-        
-         
-
-
       </dd>
     </dl>
+
     <h4>Attributes</h4>
     <dl dfn-for="LabeledObject">
       <dt><dfn attribute title="LabeledObject/confidentiality">confidentiality</dfn></dt>
@@ -519,7 +516,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         On getting, the user agent MUST use an algorithm equivalent to
         the following:
 
-        1. Invoke the <a>taint current context</a> algorithm with the <a
+        1. Invoke the <a>context tainting</a> algorithm with the <a
         interface>LabeledObject</a>'s confidentiality and integrity labels.
 
         2. Return the <a interface>LabeledObject</a>'s <a>protected 
@@ -535,8 +532,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 <section>
   <h2 id="algorithms">Algorithms</h2>
   <section>
-    <h3 id="reduce-to-normal-form">Reduce to Label Normal Form</h3>
-    The <dfn>reduce to label normal form</dfn> algorithm takes a
+    <h3 id="reduce-to-normal-form">Label Normal Form Reduction</h3>
+    The <dfn>label normal form reduction</dfn> algorithm takes a
     <var>label</var> argument and produces a <a>Label</a> value
     according to these steps:
 
@@ -544,21 +541,33 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   </section>
   <section>
-    <h3 id="subsumes-check">Subsumes Check</h3> The <dfn>subsumes
-      check</dfn> algorithm takes a two labels <var>A</var> and
-    <var>B</var> and produces a boolean according to these steps:
+    <h3 id="subsumes-check">Label Subsumption</h3>
+    The <dfn>label subsumtion</dfn> algorithm takes a two labels
+    <var>A</var> and <var>B</var> and produces a boolean according to
+    these steps:
 
     ISSUE: describe the subsumes algorithm
 
   </section>
   <section>
-    <h3 id="taint-context">Taint Current Context</h3> The <dfn>taint
-      current context</dfn> algorithm takes a two labels,
+    <h3 id="taint-context">Context Tainting</h3>
+    The <dfn>context tainting</dfn> algorithm takes a two labels,
     <var>confidentiality</var> and <var>integrity</var>, and updates
     the <a>context labels</a> to allow for reading data labeled with
     these labels.
 
     ISSUE: describe taint
+
+  </section>
+  <section>
+    <h3 id="write-check">Write Check</h3>
+    The <dfn>write check</dfn> algorithm takes a two labels,
+    <var>confidentiality</var> and <var>integrity</var>, and returns
+    <code>true</code> if the current context is allowed to write to
+    (or create) an entity labeled as such; otherwise, it returns
+    <code>false</code>.
+
+    ISSUE: describe write check
 
   </section>
 </section>

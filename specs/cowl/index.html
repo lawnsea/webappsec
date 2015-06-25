@@ -202,9 +202,10 @@ privilege-separated, compartmentalized applications.</p>
      </ul>
     <li><a href="#algorithms"><span class="secno">4</span> <span class="content">Algorithms</span></a>
      <ul class="toc">
-      <li><a href="#reduce-to-normal-form"><span class="secno">4.1</span> <span class="content">Reduce to Label Normal Form</span></a>
-      <li><a href="#subsumes-check"><span class="secno">4.2</span> <span class="content">Subsumes Check</span></a>
-      <li><a href="#taint-context"><span class="secno">4.3</span> <span class="content">Taint Current Context</span></a>
+      <li><a href="#reduce-to-normal-form"><span class="secno">4.1</span> <span class="content">Label Normal Form Reduction</span></a>
+      <li><a href="#subsumes-check"><span class="secno">4.2</span> <span class="content">Label Subsumption</span></a>
+      <li><a href="#taint-context"><span class="secno">4.3</span> <span class="content">Context Tainting</span></a>
+      <li><a href="#write-check"><span class="secno">4.4</span> <span class="content">Write Check</span></a>
      </ul>
     <li><a href="#conformance"><span class="secno"></span> <span class="content">Conformance</span></a>
      <ul class="toc">
@@ -503,7 +504,7 @@ object was not tampered by <code>https://b.com</code>.</p>
     
      <li>
       A label is in <dfn data-dfn-type="dfn" data-noexport="" id="normal-form">normal form<a class="self-link" href="#normal-form"></a></dfn> if reducing it according to
-      the <a data-link-type="dfn" href="#reduce-to-label-normal-form">reduce to label normal form</a> algorithm produces the
+      the <a data-link-type="dfn" href="#label-normal-form-reduction">label normal form reduction</a> algorithm produces the
       same value.
     
      
@@ -516,7 +517,7 @@ object was not tampered by <code>https://b.com</code>.</p>
     
      <li>
       A label <var>A</var> <dfn data-dfn-type="dfn" data-noexport="" id="subsumes">subsumes<a class="self-link" href="#subsumes"></a></dfn> another label
-      <var>B</var> if the result of running the <a data-link-type="dfn" href="#subsumes-check0">subsumes check</a>
+      <var>B</var> if the result of running the <a data-link-type="dfn" href="#label-subsumtion">label subsumtion</a>
       algorithm on the <a data-link-type="dfn" href="#normal-form">normal form</a>s of <var>A</var> and
       <var>B</var> returns <code>true</code>.
     
@@ -808,8 +809,8 @@ parameter, if it is set.  Otherwise, let <var>int</var> be the
 
 
         <li data-md="">
-         <p>Let <var>canWrite</var> be the result of invoking the <a data-link-type="dfn">write
-guard</a> algorithm with the <var>conf</var> and <var>int</var> labels.</p>
+         <p>Let <var>canWrite</var> be the result of invoking the <a data-link-type="dfn" href="#write-check0">write
+check</a> algorithm with the <var>conf</var> and <var>int</var> labels.</p>
          
 
 
@@ -827,16 +828,12 @@ set to <var>obj clone</var>, the confidentiality label set to
 <var>conf</var>, and the integrity
 label set to <var>int</var>.</p>
          
-
-
-
 </ol>
-       
-      
       
     
      </dl>
      
+
     
      <h4 class="heading settled" data-level="3.3.2" id="attributes"><span class="secno">3.3.2. </span><span class="content">Attributes</span><a class="self-link" href="#attributes"></a></h4>
      
@@ -869,7 +866,7 @@ label set to <var>int</var>.</p>
 
        <ol>
         <li data-md="">
-         <p>Invoke the <a data-link-type="dfn" href="#taint-current-context">taint current context</a> algorithm with the <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>’s confidentiality and integrity labels.</p>
+         <p>Invoke the <a data-link-type="dfn" href="#context-tainting">context tainting</a> algorithm with the <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>’s confidentiality and integrity labels.</p>
          
 
 
@@ -897,9 +894,9 @@ label set to <var>int</var>.</p>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.1" id="reduce-to-normal-form"><span class="secno">4.1. </span><span class="content">Reduce to Label Normal Form</span><a class="self-link" href="#reduce-to-normal-form"></a></h3>
+     <h3 class="heading settled" data-level="4.1" id="reduce-to-normal-form"><span class="secno">4.1. </span><span class="content">Label Normal Form Reduction</span><a class="self-link" href="#reduce-to-normal-form"></a></h3>
      
-    The <dfn data-dfn-type="dfn" data-noexport="" id="reduce-to-label-normal-form">reduce to label normal form<a class="self-link" href="#reduce-to-label-normal-form"></a></dfn> algorithm takes a
+    The <dfn data-dfn-type="dfn" data-noexport="" id="label-normal-form-reduction">label normal form reduction<a class="self-link" href="#label-normal-form-reduction"></a></dfn> algorithm takes a
     <var>label</var> argument and produces a <a data-link-type="dfn" href="#label">Label</a> value
     according to these steps:
 
@@ -912,10 +909,11 @@ label set to <var>int</var>.</p>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.2" id="subsumes-check"><span class="secno">4.2. </span><span class="content">Subsumes Check</span><a class="self-link" href="#subsumes-check"></a></h3>
-      The <dfn data-dfn-type="dfn" data-noexport="" id="subsumes-check0">subsumes
-      check<a class="self-link" href="#subsumes-check0"></a></dfn> algorithm takes a two labels <var>A</var> and
-    <var>B</var> and produces a boolean according to these steps:
+     <h3 class="heading settled" data-level="4.2" id="subsumes-check"><span class="secno">4.2. </span><span class="content">Label Subsumption</span><a class="self-link" href="#subsumes-check"></a></h3>
+     
+    The <dfn data-dfn-type="dfn" data-noexport="" id="label-subsumtion">label subsumtion<a class="self-link" href="#label-subsumtion"></a></dfn> algorithm takes a two labels
+    <var>A</var> and <var>B</var> and produces a boolean according to
+    these steps:
 
 
      <p class="issue" id="issue-3dc7e411"><a class="self-link" href="#issue-3dc7e411"></a> describe the subsumes algorithm</p>
@@ -926,15 +924,32 @@ label set to <var>int</var>.</p>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.3" id="taint-context"><span class="secno">4.3. </span><span class="content">Taint Current Context</span><a class="self-link" href="#taint-context"></a></h3>
-      The <dfn data-dfn-type="dfn" data-noexport="" id="taint-current-context">taint
-      current context<a class="self-link" href="#taint-current-context"></a></dfn> algorithm takes a two labels,
+     <h3 class="heading settled" data-level="4.3" id="taint-context"><span class="secno">4.3. </span><span class="content">Context Tainting</span><a class="self-link" href="#taint-context"></a></h3>
+     
+    The <dfn data-dfn-type="dfn" data-noexport="" id="context-tainting">context tainting<a class="self-link" href="#context-tainting"></a></dfn> algorithm takes a two labels,
     <var>confidentiality</var> and <var>integrity</var>, and updates
     the <a data-link-type="dfn">context labels</a> to allow for reading data labeled with
     these labels.
 
 
      <p class="issue" id="issue-9c43f37a"><a class="self-link" href="#issue-9c43f37a"></a> describe taint</p>
+     
+
+  
+    </section>
+  
+    <section>
+    
+     <h3 class="heading settled" data-level="4.4" id="write-check"><span class="secno">4.4. </span><span class="content">Write Check</span><a class="self-link" href="#write-check"></a></h3>
+     
+    The <dfn data-dfn-type="dfn" data-noexport="" id="write-check0">write check<a class="self-link" href="#write-check0"></a></dfn> algorithm takes a two labels,
+    <var>confidentiality</var> and <var>integrity</var>, and returns
+    <code>true</code> if the current context is allowed to write to
+    (or create) an entity labeled as such; otherwise, it returns
+    <code>false</code>.
+
+
+     <p class="issue" id="issue-821539a6"><a class="self-link" href="#issue-821539a6"></a> describe write check</p>
      
 
   
@@ -1023,6 +1038,7 @@ label set to <var>int</var>.</p>
     </ul>
    <li>conformant server, <a href="#conformant-server">Unnumbered section</a>
    <li>conformant user agent, <a href="#conformant-user-agent">Unnumbered section</a>
+   <li>context tainting, <a href="#context-tainting">4.3</a>
    <li>current confidential label, <a href="#current-confidential-label">2</a>
    <li>current integrity label, <a href="#current-integrity-label">2</a>
    <li>disjunction set, <a href="#disjunction-set">3.1</a>
@@ -1040,9 +1056,11 @@ label set to <var>int</var>.</p>
    <li>label, <a href="#label">2</a>
    <li>LabeledObject, <a href="#labeledobject">3.3</a>
    <li>LabeledObject(obj, labels), <a href="#dom-labeledobject-labeledobjectobj-labels">3.3.1</a>
+   <li>label normal form reduction, <a href="#label-normal-form-reduction">4.1</a>
    <li>Label(origin), <a href="#dom-label-labelorigin">3.1.1</a>
    <li>labels, <a href="#dom-labeledobject-labeledobjectobj-labels-labels">3.3</a>
    <li>label set, <a href="#label-set">3.1</a>
+   <li>label subsumtion, <a href="#label-subsumtion">4.2</a>
    <li>normal form, <a href="#normal-form">2</a>
    <li>obj
     <ul>
@@ -1062,14 +1080,10 @@ label set to <var>int</var>.</p>
    <li>protectedObject, <a href="#dom-labeledobject-protectedobject">3.3.2</a>
    <li>protected
       object, <a href="#protected-object">3.3</a>
-   <li>reduce to label normal form, <a href="#reduce-to-label-normal-form">4.1</a>
    <li>subsumes, <a href="#subsumes">2</a>
-   <li>subsumes
-      check, <a href="#subsumes-check0">4.2</a>
    <li>subsumes(other), <a href="#dom-label-subsumesother">3.1.2</a>
-   <li>taint
-      current context, <a href="#taint-current-context">4.3</a>
-   <li>toJSON(), <a href="#dom-label-tojson">3.1</a></ul>
+   <li>toJSON(), <a href="#dom-label-tojson">3.1</a>
+   <li>write check, <a href="#write-check0">4.4</a></ul>
   <h3 class="no-num heading settled" id="index-defined-elsewhere"><span class="content">Terms defined by reference</span><a class="self-link" href="#index-defined-elsewhere"></a></h3>
   <ul class="indexlist">
    <li><a data-link-type="biblio" href="#biblio-html5">[html5]</a> defines the following terms:
@@ -1158,5 +1172,6 @@ interface <a href="#labeledobject">LabeledObject</a> {
     mathematical representation instead of ECMA-262 Sets?<a href="#issue-4cfef4cf"> ↵ </a></div>
    <div class="issue"> describe the reduction algorithm<a href="#issue-a82506bb"> ↵ </a></div>
    <div class="issue"> describe the subsumes algorithm<a href="#issue-3dc7e411"> ↵ </a></div>
-   <div class="issue"> describe taint<a href="#issue-9c43f37a"> ↵ </a></div></div></body>
+   <div class="issue"> describe taint<a href="#issue-9c43f37a"> ↵ </a></div>
+   <div class="issue"> describe write check<a href="#issue-821539a6"> ↵ </a></div></div></body>
 </html>

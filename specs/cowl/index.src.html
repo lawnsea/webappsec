@@ -174,15 +174,17 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
   <h3 id="examples">Use Cases/Examples</h3>
-  <h4 id="examples-checker">Untrusted library or service</h4>
+  <h4 id="examples-checker">Untrusted service</h4>
 
-  An author wishes to use a library or service (e.g., in the form of
-  an iframe) without trusting it (or its dependencies) to not leak
-  their sensitive data. The author can use COWL to specify a
-  <a>label</a> policy on the data, e.g., which origins are allowed to
-  read the data, and confine the untrusted code once it inspects the
-  sensitive data (such that it can only communicate according to the
-  policy).
+  An author wishes to use a service (e.g., in the form of an iframe)
+  without trusting it (or its dependencies) to not leak their
+  sensitive data. To protect the data, the author associates a
+  <a>label</a> with the data, which encodes a security policy
+  specifying the origins allowed to read the data, and shares the
+  newly created <a>labeled object</a> with the untrusted code. In
+  turn, COWL confines the untrusted code, once it inspects the
+  sensitive data, such that it can only communicate according to the
+  author-specified policy.
 
   <div class="example">
     Consider using a third-party password strength checker provided by
@@ -220,6 +222,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     also safe, since it has not inspected the sensitive password.
   </div>
 
+  <h4 id="examples-checker-worker">Untrusted library</h4>
+
   <h4 id="examples-mashup">Third-party mashup</h4>
 
   ISSUE: describe client-side mint or encrypted document editor.
@@ -252,7 +256,6 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     Note, COWL should be used as an additional defense layer to other
     security mechanisms such as CSP, SRI, CORS, and iframe <code><a
     element-attr>sandbox</a></code>.
-
   </section>
 </section>
 
@@ -290,15 +293,17 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
        to <code>https://a.com</code> to be leaked to <code>https://b.com</code>.
       </div>
 
-      When associated with an object, a confidentiality
-      label specifies the origins to whom the object is sensitive,
-      while an integrity label specifies the origins that
-      endorse the object. [[#object-labels]] defines how labels are
-      associated with objects.
+      When associated with an object, a confidentiality label
+      specifies the origins to whom the object is sensitive, while an
+      integrity label specifies the origins that endorse the object.
+      [[#object-labels]] defines how labels are associated with
+      objects. Objects that have labels associated with them are
+      called <dfn>labeled objects</dfn>.
 
       <div class="example">
-        Consider <code>https://example.com</code> receiving an object
-        (e.g., via <a>postMessage()</a>) with the following labels:
+        Consider <code>https://example.com</code> receiving a labeled
+        object (e.g., via <a>postMessage()</a>) with the following
+        labels:
         
         * Confidentiality label: <code><a interface>Label</a>('https://example.com')</code>.
         This label indicates that the object is confidential to
@@ -310,7 +315,6 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         <code>https://example.com</code> received the message from
         <code>https://b.com</code>, the label reflects the fact that the
         object was not tampered by <code>https://b.com</code>.
-
       </div>
     </li>
     <li>
@@ -364,8 +368,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         boolean equals(Label other);
         boolean subsumes(Label other);
 
-        Label and(Label other);
-        Label _or(Label other);
+        Label and((Label or DOMString) other);
+        Label _or((Label or DOMString) other);
 
         object toJSON();
         [Throws] static Label fromJSON(object obj);
@@ -411,26 +415,53 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       </dd>
       <dt><dfn method title="subsumes(other)">subsumes(Label other)</dfn></dt>
       <dd>
-        MUST returns <code>true</code> if the <a>Label</a> on which the method
+        MUST return <code>true</code> if the <a>Label</a> on which the method
         has been called <a>subsumes</a> the <a argument
         for="Label/subsumes(other)">other</a>
         parameter; otherwise it MUST return <code>false</code>
       </dd>
-      <dt><dfn method title="and(other)">and(Label other)</dfn></dt>
+      <dt><dfn method title="and(other)">and((Label or DOMString) other)</dfn></dt>
       <dd>
-        MUST return a new <a>Label</a>, in <a>normal form</a>, which is
-        <a>equivalent</a> to adding the <a argument
-        for="Label/and(other)">other</a>'s <a>label set</a> to the
-        <a>label set</a> of the <a>Label</a> on which the method was
-        invoked.
+        The user agent MUST use an algorithm equivalent to the following:
+
+        1. Let <var>O</var> be the <a argument for="Label/and(other)">other</a> argument.
+
+        1.  If the type of <a argument for="Label/and(other)">other</a> is
+        <a>DOMString</a>, run the following sub-steps:
+
+          1. Set <var>O</var> to the result of invoking the
+          <a>Label()</a> constructor with <a argument
+          for="Label/and(other)">other</a> as an argument, if the
+          constructor did not raise an exception.
+
+          2. Else, re-throw the exception and terminate this algorithm.
+
+        2. Return a new <a>Label</a>, in <a>normal form</a>, which is
+        <a>equivalent</a> to adding <var>O</var>'s <a>label set</a> to
+        the <a>label set</a> of the <a>Label</a> on which the method
+        was invoked.
       </dd>
-      <dt><dfn method title="_or(other)">_or(Label other)</dfn></dt>
+      <dt><dfn method title="_or(other)">_or((Label or DOMString) other)</dfn></dt>
       <dd>
-        MUST return a new <a>Label</a>, in <a>normal form</a>, which
-        is <a>equivalent</a> to adding each <a>disjunction set</a> of
-        <a argument for="Label/_or(other)">other</a>'s <a>label
-        set</a> to each <a>disjunction set</a> of the <a>label set</a>
-        of the <a>Label</a> on which the method was invoked.
+        The user agent MUST use an algorithm equivalent to the following:
+
+        1. Let <var>O</var> be the <a argument for="Label/and(other)">other</a> argument.
+
+        1.  If the type of <a argument for="Label/_or(other)">other</a> is
+        <a>DOMString</a>, run the following sub-steps:
+
+          1. Set <var>O</var> to the result of invoking the
+          <a>Label()</a> constructor with <a argument
+          for="Label/_or(other)">other</a> as an argument, if the
+          constructor did not raise an exception.
+
+          2. Else, re-throw the exception and terminate this algorithm.
+
+        2. Return a new <a>Label</a>, in <a>normal form</a>, which is
+        <a>equivalent</a> to adding each element of each
+        <a>disjunction set</a> of <var>O</var>'s <a>label set</a> to
+        each <a>disjunction set</a> of the <a>label set</a> of the
+        <a>Label</a> on which the method was invoked.
       </dd>
     </dl>
 

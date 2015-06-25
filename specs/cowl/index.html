@@ -355,10 +355,43 @@ which have the same privileges as content.</p>
      <h4 class="heading settled" data-level="1.2.1" id="examples-checker"><span class="secno">1.2.1. </span><span class="content">Untrusted library</span><a class="self-link" href="#examples-checker"></a></h4>
      
 
+  
+     <div class="example" id="example-11d1438a"><a class="self-link" href="#example-11d1438a"></a>
+    Consider using a third-party password strength checker provided by
+    <code>https://untrusted.com</code>. To protect the confidentiality
+    of the password, the <code>https://example.com</code> application
+    can use COWL to associate a confidentiality policy, in the form of
+    a <a data-link-type="dfn" href="#label">label</a>, with the object before sending it to the untrusted
+    service:
 
-     <p class="issue" id="issue-2d8404f3"><a class="self-link" href="#issue-2d8404f3"></a> describe password strength checker. Illustrates how
-  confidential password can be protected. Other concepts: light-weigh
-  Workers, fresh principals/privileges.</p>
+    
+      <pre><code>// Create new policy in the form of a <a class="idl-code" data-link-type="interface" href="#label1">Label</a> that specifies that
+// only the current origin is allowed to read the password:
+var policy = new <a class="idl-code" data-link-type="interface" href="#label1">Label</a>(window.location.origin);
+
+// Associate the label with password:
+var labeldPassword = new <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>(password, {confidentiality: policy});
+
+// Send the labeled password to the checker iframe:
+checker.postMessage(labeledPassword, 'https://untrusted.com');
+
+// ... register listener to receive response from checker
+</code></pre>
+      
+
+
+      <p>Once the checker inspects the password, COWL limits the iframe
+    to communicating with origins that preserve the password’s
+    confidentiality, i.e., <code>https://example.com</code>.</p>
+      
+
+
+      <p class="note" role="note">Note, until the checker actually inspects the protected password,
+    it can communicate freely, e.g., with
+    <code>https://untrusted.com</code>.</p>
+      
+  
+     </div>
      
 
   
@@ -524,12 +557,18 @@ object was not tampered by <code>https://b.com</code>.</p>
      
     
      <li>
-      <dfn data-dfn-type="dfn" data-noexport="" id="current-confidential-label">current confidential label<a class="self-link" href="#current-confidential-label"></a></dfn>
+      The <dfn data-dfn-type="dfn" data-noexport="" id="current-confidentiality-label">current confidentiality label<a class="self-link" href="#current-confidentiality-label"></a></dfn> is the
+      confidentiality label associated with the current context.
+      <a href="#context-labels">§3.2 Labeled Contexts</a> specifies how labels are associated with
+      contexts.
     
      
     
      <li>
-      <dfn data-dfn-type="dfn" data-noexport="" id="current-integrity-label">current integrity label<a class="self-link" href="#current-integrity-label"></a></dfn>
+      The <dfn data-dfn-type="dfn" data-noexport="" id="current-integrity-label">current integrity label<a class="self-link" href="#current-integrity-label"></a></dfn> is the
+      integrity label associated with the current context.
+      <a href="#context-labels">§3.2 Labeled Contexts</a> specifies how labels are associated with
+      contexts.
     
      
   
@@ -576,7 +615,7 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
      
 
 
-     <p class="issue" id="issue-8d85e29e"><a class="self-link" href="#issue-8d85e29e"></a> Current WebIDL implementation requires and underscore for
+     <p class="issue" id="issue-afa876b4"><a class="self-link" href="#issue-afa876b4"></a> Current WebIDL implementation requires an underscore for
     certain identifiers. Can we rename <code>_or</code> to
     <code>or</code>?</p>
      
@@ -620,12 +659,12 @@ itself MUST contain the <a data-link-type="dfn" href="http://dom.spec.whatwg.org
 <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a> of the parameter.</p>
          
 </ol>
-       
-      
+             
       
     
      </dl>
      
+
     
      <h4 class="heading settled" data-level="3.1.2" id="methods"><span class="secno">3.1.2. </span><span class="content">Methods</span><a class="self-link" href="#methods"></a></h4>
      
@@ -797,7 +836,7 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
         <li data-md="">
          <p>Let <var>conf</var> be the <a class="idl-code" data-link-type="dict-member" href="#dom-cilabel-confidentiality">confidentiality</a> member of the <a class="idl-code" data-link-type="argument" href="#dom-labeledobject-labeledobjectobj-labels-labels">labels</a>
 argument, if it is set.  Otherwise, let <var>conf</var> be
-the <a data-link-type="dfn">current confidentiality label</a>.</p>
+the <a data-link-type="dfn" href="#current-confidentiality-label">current confidentiality label</a>.</p>
          
 
 
@@ -832,6 +871,20 @@ label set to <var>int</var>.</p>
       
     
      </dl>
+     
+
+    
+     <div class="note" role="note">
+      Because COWL enforces labels at context boundaries, there is
+      usually no reason to label an object and then use the labeled
+      object within the same context.  <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>s
+      are mainly useful for sending sensitive data to an untrusted
+      context, e.g., via cross-document messaging, as a way to ensure
+      that the data’s confidentiality and integrity (as specified by
+      the labels) are respected by the untrusted context. Hence, the
+      <a data-link-type="functionish" href="#dom-labeledobject-labeledobjectobj-labels">LabeledObject()</a> constructor only accepts objects that can
+      be <a data-link-type="dfn" href="http://www.w3.org/TR/html5/infrastructure.html#structured-clone">structurally cloned</a>.
+    </div>
      
 
     
@@ -880,6 +933,38 @@ label set to <var>int</var>.</p>
     
      </dl>
      
+
+    
+     <div class="note" role="note">
+      Note: the labels of a <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a> are
+      essentially public: code can always inspect labels. However, to
+      inspect the internal, <a data-link-type="dfn" href="#protected-object">protected object</a> the current
+      context must be tainted according to the object’s labels. This
+      ensures two things:
+
+
+      <ul>
+       <li data-md="">
+        <p>The context can’t violate the confidentiality of the data (as
+specified by the confidentiality label) by communicating
+arbitrarily once it reads data labeled as such.</p>
+        
+
+
+       <li data-md="">
+        <p>The context can’t violate the integrity of entities more
+trustworthy than the data. (The trustworthiness of the data is
+specified by the integrity label.) In particular, once the
+context reads the data and gets tainted, the rest of the
+computation is restricted to writing to entities that are at
+most as trustworthy as the data, for the read data may have
+influenced the computation.</p>
+        
+</ul>
+          
+     </div>
+     
+
 
   
     </section>
@@ -1039,7 +1124,7 @@ label set to <var>int</var>.</p>
    <li>conformant server, <a href="#conformant-server">Unnumbered section</a>
    <li>conformant user agent, <a href="#conformant-user-agent">Unnumbered section</a>
    <li>context tainting, <a href="#context-tainting">4.3</a>
-   <li>current confidential label, <a href="#current-confidential-label">2</a>
+   <li>current confidentiality label, <a href="#current-confidentiality-label">2</a>
    <li>current integrity label, <a href="#current-integrity-label">2</a>
    <li>disjunction set, <a href="#disjunction-set">3.1</a>
    <li>empty label, <a href="#empty-label">3.1</a>
@@ -1156,18 +1241,15 @@ interface <a href="#labeledobject">LabeledObject</a> {
 </pre>
   <h2 class="no-num heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
-   <div class="issue"> describe password strength checker. Illustrates how
-  confidential password can be protected. Other concepts: light-weigh
-  Workers, fresh principals/privileges.<a href="#issue-2d8404f3"> ↵ </a></div>
    <div class="issue"> describe client-side mint or encrypted document editor.<a href="#issue-93214987"> ↵ </a></div>
    <div class="issue"> describe how to drop privileges.<a href="#issue-1281a278"> ↵ </a></div>
    <div class="issue"> describe how page can be divided into components with
   different privileges.<a href="#issue-c5e66481"> ↵ </a></div>
    <div class="issue"> describe how to privileges can be delegated and used to
   isolate different users of a web site.<a href="#issue-0e427243"> ↵ </a></div>
-   <div class="issue"> Current WebIDL implementation requires and underscore for
+   <div class="issue"> Current WebIDL implementation requires an underscore for
     certain identifiers. Can we rename <code>_or</code> to
-    <code>or</code>?<a href="#issue-8d85e29e"> ↵ </a></div>
+    <code>or</code>?<a href="#issue-afa876b4"> ↵ </a></div>
    <div class="issue"> describe the other methods and constructor; should we use
     mathematical representation instead of ECMA-262 Sets?<a href="#issue-4cfef4cf"> ↵ </a></div>
    <div class="issue"> describe the reduction algorithm<a href="#issue-a82506bb"> ↵ </a></div>

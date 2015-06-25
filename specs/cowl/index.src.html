@@ -176,9 +176,36 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   <h3 id="examples">Use Cases/Examples</h3>
   <h4 id="examples-checker">Untrusted library</h4>
 
-  ISSUE: describe password strength checker. Illustrates how
-  confidential password can be protected. Other concepts: light-weigh
-  Workers, fresh principals/privileges.
+  <div class="example">
+    Consider using a third-party password strength checker provided by
+    <code>https://untrusted.com</code>. To protect the confidentiality
+    of the password, the <code>https://example.com</code> application
+    can use COWL to associate a confidentiality policy, in the form of
+    a <a>label</a>, with the object before sending it to the untrusted
+    service:
+
+    <pre><code>
+    // Create new policy in the form of a <a interface>Label</a> that specifies that
+    // only the current origin is allowed to read the password:
+    var policy = new <a interface>Label</a>(window.location.origin);
+
+    // Associate the label with password:
+    var labeldPassword = new <a interface>LabeledObject</a>(password, {confidentiality: policy});
+
+    // Send the labeled password to the checker iframe:
+    checker.postMessage(labeledPassword, 'https://untrusted.com');
+
+    // ... register listener to receive response from checker
+    </code></pre>
+
+    Once the checker inspects the password, COWL limits the iframe
+    to communicating with origins that preserve the password's
+    confidentiality, i.e., <code>https://example.com</code>.
+
+    Note, until the checker actually inspects the protected password,
+    it can communicate freely, e.g., with
+    <code>https://untrusted.com</code>.
+  </div>
 
   <h4 id="examples-mashup">Third-party mashup</h4>
 
@@ -289,10 +316,16 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <var>B</var> returns <code>true</code>.
     </li>
     <li>
-      <dfn>current confidential label</dfn>
+      The <dfn>current confidentiality label</dfn> is the
+      confidentiality label associated with the current context.
+      [[#context-labels]] specifies how labels are associated with
+      contexts.
     </li>
     <li>
-      <dfn>current integrity label</dfn>
+      The <dfn>current integrity label</dfn> is the
+      integrity label associated with the current context.
+      [[#context-labels]] specifies how labels are associated with
+      contexts.
     </li>
   </ol>
 </section>
@@ -326,7 +359,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       };
     </pre>
 
-    ISSUE: Current WebIDL implementation requires and underscore for
+    ISSUE: Current WebIDL implementation requires an underscore for
     certain identifiers. Can we rename <code>_or</code> to
     <code>or</code>?
 
@@ -351,9 +384,9 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         <a>label set</a> of a single <a>disjunction set</a>, which
         itself MUST contain the <a>URL</a> corresponding to the
         <a>origin</a> of the parameter.
-
       </dd>
     </dl>
+
     <h4>Methods</h4>
     <dl dfn-for="Label">
       <dt><dfn method title="equals(other)">equals(Label other)</dfn></dt>
@@ -499,6 +532,18 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       </dd>
     </dl>
 
+    <div class="note">
+      Because COWL enforces labels at context boundaries, there is
+      usually no reason to label an object and then use the labeled
+      object within the same context.  <a interface>LabeledObject</a>s
+      are mainly useful for sending sensitive data to an untrusted
+      context, e.g., via cross-document messaging, as a way to ensure
+      that the data's confidentiality and integrity (as specified by
+      the labels) are respected by the untrusted context. Hence, the
+      <a>LabeledObject()</a> constructor only accepts objects that can
+      be <a>structurally cloned</a>.
+    </div>
+
     <h4>Attributes</h4>
     <dl dfn-for="LabeledObject">
       <dt><dfn attribute title="LabeledObject/confidentiality">confidentiality</dfn></dt>
@@ -523,6 +568,27 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
            object</a>.
       </dd>
     </dl>
+
+    <div class="note">
+      Note: the labels of a <a interface>LabeledObject</a> are
+      essentially public: code can always inspect labels. However, to
+      inspect the internal, <a>protected object</a> the current
+      context must be tainted according to the object's labels. This
+      ensures two things:
+      
+      * The context can't violate the confidentiality of the data (as
+      specified by the confidentiality label) by communicating
+      arbitrarily once it reads data labeled as such. 
+
+      * The context can't violate the integrity of entities more
+      trustworthy than the data. (The trustworthiness of the data is
+      specified by the integrity label.) In particular, once the
+      context reads the data and gets tainted, the rest of the
+      computation is restricted to writing to entities that are at
+      most as trustworthy as the data, for the read data may have
+      influenced the computation.
+    </div>
+
 
   </section>
 

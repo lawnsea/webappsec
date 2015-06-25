@@ -107,7 +107,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   This document specifies an extension to the current model called
   Confinement with Origin Web Labels (COWL). COWL provides authors
   with APIs for specifying access control policies on data (including
-  content) in terms of <a>origin</a> <a>labels</a>.  These policies are
+  content) in terms of <a>origin labels</a>.  These policies are
   enforced in a mandatory fashion, transitively, even once code has
   access to the data.  For example, with COWL, the author of
   <code>https://example.com/</code> can specify that a password is
@@ -178,15 +178,15 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <div class="example">
     Consider using a third-party password strength checker provided by
-    <code>https://untrusted.com</code>. To protect the confidentiality
-    of the password, the <code>https://example.com</code> application
-    can use COWL to associate a confidentiality policy, in the form of
-    a <a>label</a>, with the object before sending it to the untrusted
-    service:
+    <code>https://untrusted.com</code>, e.g., in the form of an
+    iframe. To protect the confidentiality of the password, the
+    <code>https://example.com</code> application can use COWL to
+    associate a confidentiality policy, in the form of a <a>label</a>,
+    with the password before sending it to the untrusted service:
 
     <pre><code>
-    // Create new policy in the form of a <a interface>Label</a> that specifies that
-    // only the current origin is allowed to read the password:
+    // Create new policy as a <a interface>Label</a> specifying that the password is sensitive
+    // to https://example.com and should only be disclosed to this origin:
     var policy = new <a interface>Label</a>(window.location.origin);
 
     // Associate the label with password:
@@ -198,13 +198,18 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     // ... register listener to receive response from checker
     </code></pre>
 
-    Once the checker inspects the password, COWL limits the iframe
-    to communicating with origins that preserve the password's
-    confidentiality, i.e., <code>https://example.com</code>.
+    Once the checker inspects the password, COWL limits the iframe to
+    communicating with origins that preserve the password's
+    confidentiality, i.e., <code>https://example.com</code>. Indeed,
+    this policy is enforced mandatory, even if the
+    <code>https://untrusted.com</code> service sends the password to
+    yet another party.
 
     Note, until the checker actually inspects the protected password,
-    it can communicate freely, e.g., with
-    <code>https://untrusted.com</code>.
+    it can communicate freely, e.g., with <code>https://untrusted.com</code>.
+    This is important since the checker may need to fetch resources
+    (e.g., regular expressions) to check the password strength; it is
+    also safe, since it has not inspected the sensitive password.
   </div>
 
   <h4 id="examples-mashup">Third-party mashup</h4>

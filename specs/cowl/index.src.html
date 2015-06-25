@@ -14,7 +14,7 @@ Abstract:
   with untrusted&mdash;buggy but not malicious&mdash;code (e.g., in a mashup
   scenario) yet impose restrictions on how the code can share the data
   further.
-     
+
   In addition, this specification defines a light-weight, in-thread
   Worker.  Combined with confinement, this allows developers to build
   privilege-separated, compartmentalized applications.
@@ -276,7 +276,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       [[#context-labels]].
 
       <div class="example">
-       When associate with a context, the confidentiality label 
+       When associate with a context, the confidentiality label
        <code>
           <a interface>Label</a>('https://a.com').<a>or</a>('https://b.com')
        </code>
@@ -306,7 +306,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         Consider <code>https://example.com</code> receiving a labeled
         object (e.g., via <a>postMessage()</a>) with the following
         labels:
-        
+
         * Confidentiality label: <code><a interface>Label</a>('https://example.com')</code>.
         This label indicates that the object is confidential to
         <code>https://example.com</code>.
@@ -555,7 +555,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       for="LabeledObject/LabeledObject(obj, labels)">labels</a>
       argument, if it is set.  Otherwise, let <var>conf</var> be
       the <a>current confidentiality label</a>.
-      
+
       3. Let <var>int</var> be the <a dict-member
       for="CILabel">integrity</a> member of the <a argument
       for="LabeledObject/LabeledObject(obj, labels)">labels</a>
@@ -563,12 +563,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <a>current integrity label</a>.
 
       4. Let <var>canWrite</var> be the result of invoking the <a>write
-      check</a> algorithm with the <var>conf</var> and <var>int</var> labels. 
-      
+      check</a> algorithm with the <var>conf</var> and <var>int</var> labels.
+
       5. If <var>canWrite</var> is <code>false</code>, the constructor
       MUST throw a <a spec="HTML5">SecurityError</a> exception
       and terminate this algorithm.
-         
+
       6. Else, the constructor MUST return a new
       <a interface>LabeledObject</a>, with the <a>protected object</a>
       set to <var>obj clone</var>, the confidentiality label set to
@@ -609,7 +609,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         1. Invoke the <a>context tainting</a> algorithm with the <a
         interface>LabeledObject</a>'s confidentiality and integrity labels.
 
-        2. Return the <a interface>LabeledObject</a>'s <a>protected 
+        2. Return the <a interface>LabeledObject</a>'s <a>protected
            object</a>.
       </dd>
     </dl>
@@ -620,10 +620,10 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       inspect the internal, <a>protected object</a> the current
       context must be tainted according to the object's labels. This
       ensures two things:
-      
+
       * The context can't violate the confidentiality of the data (as
       specified by the confidentiality label) by communicating
-      arbitrarily once it reads data labeled as such. 
+      arbitrarily once it reads data labeled as such.
 
       * The context can't violate the integrity of entities more
       trustworthy than the data. (The trustworthiness of the data is

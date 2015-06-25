@@ -193,8 +193,8 @@ privilege-separated, compartmentalized applications.</p>
         <li><a href="#constructors"><span class="secno">3.1.1</span> <span class="content">Constructors</span></a>
         <li><a href="#methods"><span class="secno">3.1.2</span> <span class="content">Methods</span></a>
        </ul>
-      <li><a href="#context-labels"><span class="secno">3.2</span> <span class="content">Labeling Contexts</span></a>
-      <li><a href="#object-labels"><span class="secno">3.3</span> <span class="content">Labeling JSON Objects</span></a>
+      <li><a href="#context-labels"><span class="secno">3.2</span> <span class="content">Labeled Contexts</span></a>
+      <li><a href="#object-labels"><span class="secno">3.3</span> <span class="content">Labeled Objects</span></a>
        <ul class="toc">
         <li><a href="#constructors0"><span class="secno">3.3.1</span> <span class="content">Constructors</span></a>
         <li><a href="#attributes"><span class="secno">3.3.2</span> <span class="content">Attributes</span></a>
@@ -430,12 +430,12 @@ which have the same privileges as content.</p>
       An <dfn data-dfn-type="dfn" data-noexport="" id="origin-label">origin label<a class="self-link" href="#origin-label"></a></dfn>, or more succinctly a
       <dfn data-dfn-type="dfn" data-noexport="" id="label">label<a class="self-link" href="#label"></a></dfn>, encodes either a confidentiality or integrity
       security policy. Labels can be associated with <a data-link-type="dfn" href="http://www.w3.org/TR/html5/browsers.html#windows">contexts</a>
-      and <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc4627#section-2">JSON objects</a>.
+      and objects that can be <a data-link-type="dfn" href="http://www.w3.org/TR/html5/infrastructure.html#structured-clone">structurally cloned</a>.
 
 
       <p>When associated with a <a data-link-type="dfn" href="http://www.w3.org/TR/html5/browsers.html#windows">context</a>, the label restricts the
       origins that the context can communicate with, as detailed in
-      <a href="#context-labels">§3.2 Labeling Contexts</a>.</p>
+      <a href="#context-labels">§3.2 Labeled Contexts</a>.</p>
       
 
       
@@ -464,18 +464,17 @@ which have the same privileges as content.</p>
       
 
 
-      <p>When associated with a <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc4627#section-2">JSON object</a>, a confidentiality
+      <p>When associated with an object, a confidentiality
       label specifies the origins to whom the object is sensitive,
       while an integrity label specifies the origins that
-      endorse the object. <a href="#object-labels">§3.3 Labeling JSON Objects</a> defines how labels are
+      endorse the object. <a href="#object-labels">§3.3 Labeled Objects</a> defines how labels are
       associated with objects.</p>
       
 
       
-      <div class="example" id="example-b2d02826"><a class="self-link" href="#example-b2d02826"></a>
-        Suppose <code>https://example.com</code> receives a <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc4627#section-2">JSON
-        object</a> (e.g., via <a data-link-type="functionish" href="http://www.w3.org/TR/webmessaging/#dom-window-postmessage">postMessage()</a>) and has the
-        following labels:
+      <div class="example" id="example-c0866399"><a class="self-link" href="#example-c0866399"></a>
+        Consider <code>https://example.com</code> receiving an object
+        (e.g., via <a data-link-type="functionish" href="http://www.w3.org/TR/webmessaging/#dom-window-postmessage">postMessage()</a>) with the following labels:
 
 
        <ul>
@@ -547,7 +546,7 @@ object was not tampered by <code>https://b.com</code>.</p>
     
      <h3 class="heading settled" data-level="3.1" id="label0"><span class="secno">3.1. </span><span class="content">Label interface</span><a class="self-link" href="#label0"></a></h3>
      
-    A <a class="idl-code" data-link-type="interface" href="#label1">Label</a> must have an internal <dfn data-dfn-type="dfn" data-noexport="" id="label-set">label set<a class="self-link" href="#label-set"></a></dfn>, which is
+    A <a class="idl-code" data-link-type="interface" href="#label1">Label</a> MUST have an internal <dfn data-dfn-type="dfn" data-noexport="" id="label-set">label set<a class="self-link" href="#label-set"></a></dfn>, which is
     a non-empty <a data-link-type="biblio" href="#biblio-ecma-262">[ECMA-262]</a> <code>Set</code> of <a data-link-type="dfn" href="#disjunction-set">disjunction set</a>s.
 
 
@@ -570,7 +569,7 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
   <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="method" href="#dom-label-_orother">_or</a>(<a data-link-type="idl-name" href="#label1">Label</a> <dfn class="idl-code" data-dfn-for="Label/_or(other)" data-dfn-type="argument" data-export="" id="dom-label-_orother-other">other<a class="self-link" href="#dom-label-_orother-other"></a></dfn>);
 
   object <dfn class="idl-code" data-dfn-for="Label" data-dfn-type="method" data-export="" data-lt="toJSON()" id="dom-label-tojson">toJSON<a class="self-link" href="#dom-label-tojson"></a></dfn>();
-  [Throws] static <a data-link-type="idl-name" href="#label1">Label</a> <dfn class="idl-code" data-dfn-for="Label" data-dfn-type="method" data-export="" data-lt="fromJSON(json)" id="dom-label-fromjsonjson">fromJSON<a class="self-link" href="#dom-label-fromjsonjson"></a></dfn>(object <dfn class="idl-code" data-dfn-for="Label/fromJSON(json)" data-dfn-type="argument" data-export="" id="dom-label-fromjsonjson-json">json<a class="self-link" href="#dom-label-fromjsonjson-json"></a></dfn>);
+  [Throws] static <a data-link-type="idl-name" href="#label1">Label</a> <dfn class="idl-code" data-dfn-for="Label" data-dfn-type="method" data-export="" data-lt="fromJSON(obj)" id="dom-label-fromjsonobj">fromJSON<a class="self-link" href="#dom-label-fromjsonobj"></a></dfn>(object <dfn class="idl-code" data-dfn-for="Label/fromJSON(obj)" data-dfn-type="argument" data-export="" id="dom-label-fromjsonobj-obj">obj<a class="self-link" href="#dom-label-fromjsonobj-obj"></a></dfn>);
 };
 </pre>
      
@@ -591,7 +590,8 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
       
       
       <dd>
-        Returns a new <a data-link-type="dfn" href="#empty-label">empty label</a>.
+        When invoking the <a data-link-type="functionish" href="#dom-label-label">Label()</a> constructor, the user agent
+        MUST return a new <a data-link-type="dfn" href="#empty-label">empty label</a>.
       
       
       
@@ -599,12 +599,27 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
       
       
       <dd>
-        If the <a class="idl-code" data-link-type="argument" href="#dom-label-labelorigin-origin">origin</a> is not
-        a <a data-link-type="dfn" href="http://dom.spec.whatwg.org/#concept-document-url">URL</a>, the constructor MUST throw a
-        <code>TypeError</code> exception <a data-link-type="biblio" href="#biblio-ecma-262">[ECMA-262]</a>.
-        Otherwise, it returns a new <a data-link-type="dfn" href="#label">Label</a> that contains a <a data-link-type="dfn" href="#label-set">label
-        set</a> of a single <a data-link-type="dfn" href="#disjunction-set">disjunction set</a>, which itself
-        contains the <a data-link-type="dfn" href="http://dom.spec.whatwg.org/#concept-document-url">URL</a> corresponding to the <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a> of the <a class="idl-code" data-link-type="argument" href="#dom-label-labelorigin-origin">origin</a> parameter.
+        When invoking the <a data-link-type="functionish" href="#dom-label-label">Label(origin)</a> constructor, the user agent
+        MUST use an algorithm equivalent to the following:
+
+
+       <ol>
+        <li data-md="">
+         <p>If the <a class="idl-code" data-link-type="argument" href="#dom-label-labelorigin-origin">origin</a>
+argument is not a <a data-link-type="dfn" href="http://dom.spec.whatwg.org/#concept-document-url">URL</a>, the constructor MUST throw a
+<code>TypeError</code> exception <a data-link-type="biblio" href="#biblio-ecma-262">[ECMA-262]</a> and
+terminate this algorithm.</p>
+         
+
+
+        <li data-md="">
+         <p>Else, it MUST return a new <a data-link-type="dfn" href="#label">Label</a> that contains a
+<a data-link-type="dfn" href="#label-set">label set</a> of a single <a data-link-type="dfn" href="#disjunction-set">disjunction set</a>, which
+itself MUST contain the <a data-link-type="dfn" href="http://dom.spec.whatwg.org/#concept-document-url">URL</a> corresponding to the
+<a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a> of the parameter.</p>
+         
+</ol>
+       
       
       
     
@@ -620,9 +635,9 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
       
       
       <dd>
-        Returns <code>true</code> if the <a data-link-type="dfn" href="#label">Label</a> on which the method
+        MUST return <code>true</code> if the <a data-link-type="dfn" href="#label">Label</a> on which the method
         has been called is <a data-link-type="dfn" href="#equivalent">equivalent</a> to the <a class="idl-code" data-link-type="argument" href="#dom-label-equalsother-other">other</a>
-        parameter; otherwise it returns <code>false</code>
+        parameter; otherwise it MUST return <code>false</code>
       
       
       
@@ -630,9 +645,9 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
       
       
       <dd>
-        Returns <code>true</code> if the <a data-link-type="dfn" href="#label">Label</a> on which the method
+        MUST returns <code>true</code> if the <a data-link-type="dfn" href="#label">Label</a> on which the method
         has been called <a data-link-type="dfn" href="#subsumes">subsumes</a> the <a class="idl-code" data-link-type="argument" href="#dom-label-subsumesother-other">other</a>
-        parameter; otherwise it returns <code>false</code>
+        parameter; otherwise it MUST return <code>false</code>
       
       
       
@@ -640,7 +655,7 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
       
       
       <dd>
-        Returns a new <a data-link-type="dfn" href="#label">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>, which is
+        MUST return a new <a data-link-type="dfn" href="#label">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>, which is
         <a data-link-type="dfn" href="#equivalent">equivalent</a> to adding the <a class="idl-code" data-link-type="argument" href="#dom-label-andother-other">other</a>’s <a data-link-type="dfn" href="#label-set">label set</a> to the
         <a data-link-type="dfn" href="#label-set">label set</a> of the <a data-link-type="dfn" href="#label">Label</a> on which the method was
         invoked.
@@ -651,10 +666,11 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
       
       
       <dd>
-        Returns a new <a data-link-type="dfn" href="#label">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>, which is
-        <a data-link-type="dfn" href="#equivalent">equivalent</a> to adding each <a data-link-type="dfn" href="#disjunction-set">disjunction set</a> of <a class="idl-code" data-link-type="argument" href="#dom-label-_orother-other">other</a>’s <a data-link-type="dfn" href="#label-set">label set</a>
-        to each <a data-link-type="dfn" href="#disjunction-set">disjunction set</a> of the <a data-link-type="dfn" href="#label-set">label set</a> of the
-        <a data-link-type="dfn" href="#label">Label</a> on which the method was invoked.
+        MUST return a new <a data-link-type="dfn" href="#label">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>, which
+        is <a data-link-type="dfn" href="#equivalent">equivalent</a> to adding each <a data-link-type="dfn" href="#disjunction-set">disjunction set</a> of
+        <a class="idl-code" data-link-type="argument" href="#dom-label-_orother-other">other</a>’s <a data-link-type="dfn" href="#label-set">label
+        set</a> to each <a data-link-type="dfn" href="#disjunction-set">disjunction set</a> of the <a data-link-type="dfn" href="#label-set">label set</a>
+        of the <a data-link-type="dfn" href="#label">Label</a> on which the method was invoked.
       
       
     
@@ -721,7 +737,7 @@ b.subsumes(aOrb) === true;
   
     <section>
     
-     <h3 class="heading settled" data-level="3.2" id="context-labels"><span class="secno">3.2. </span><span class="content">Labeling Contexts</span><a class="self-link" href="#context-labels"></a></h3>
+     <h3 class="heading settled" data-level="3.2" id="context-labels"><span class="secno">3.2. </span><span class="content">Labeled Contexts</span><a class="self-link" href="#context-labels"></a></h3>
      
   
     </section>
@@ -729,12 +745,12 @@ b.subsumes(aOrb) === true;
   
     <section>
     
-     <h3 class="heading settled" data-level="3.3" id="object-labels"><span class="secno">3.3. </span><span class="content">Labeling JSON Objects</span><a class="self-link" href="#object-labels"></a></h3>
+     <h3 class="heading settled" data-level="3.3" id="object-labels"><span class="secno">3.3. </span><span class="content">Labeled Objects</span><a class="self-link" href="#object-labels"></a></h3>
      
 
 
-     <p>A <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a> must have an internal <dfn data-dfn-type="dfn" data-noexport="" id="protected-json-object">protected
-      JSON object<a class="self-link" href="#protected-json-object"></a></dfn>, a confidentiality <a data-link-type="dfn" href="#label">label</a>, and an
+     <p>A <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a> MUST have an internal <dfn data-dfn-type="dfn" data-noexport="" id="protected-object">protected
+      object<a class="self-link" href="#protected-object"></a></dfn>, a confidentiality <a data-link-type="dfn" href="#label">label</a>, and an
     integrity <a data-link-type="dfn" href="#label">label</a>.</p>
      
 
@@ -744,12 +760,12 @@ b.subsumes(aOrb) === true;
   <a data-link-type="idl-name" href="#label1">Label</a>? <dfn class="idl-code" data-dfn-for="CILabel" data-dfn-type="dict-member" data-export="" data-type="Label? " id="dom-cilabel-integrity">integrity<a class="self-link" href="#dom-cilabel-integrity"></a></dfn>;
 };
 
-[<dfn class="idl-code" data-dfn-for="LabeledJSON" data-dfn-type="constructor" data-export="" data-lt="LabeledJSON(json, labels)" id="dom-labeledjson-labeledjsonjson-labels">Constructor<a class="self-link" href="#dom-labeledjson-labeledjsonjson-labels"></a></dfn>(object <dfn class="idl-code" data-dfn-for="LabeledJSON/LabeledJSON(json, labels)" data-dfn-type="argument" data-export="" id="dom-labeledjson-labeledjsonjson-labels-json">json<a class="self-link" href="#dom-labeledjson-labeledjsonjson-labels-json"></a></dfn>, <a data-link-type="idl-name" href="#dictdef-cilabel">CILabel</a> <dfn class="idl-code" data-dfn-for="LabeledJSON/LabeledJSON(json, labels)" data-dfn-type="argument" data-export="" id="dom-labeledjson-labeledjsonjson-labels-labels">labels<a class="self-link" href="#dom-labeledjson-labeledjsonjson-labels-labels"></a></dfn>)]
-interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="labeledjson">LabeledJSON<a class="self-link" href="#labeledjson"></a></dfn> {
-  [Pure] readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledjson-confidentiality">confidentiality</a>;
-  [Pure] readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledjson-integrity">integrity</a>;
+[<a class="idl-code" data-link-type="constructor" href="#dom-labeledobject-labeledobjectobj-labels">Constructor</a>(object <dfn class="idl-code" data-dfn-for="LabeledObject/LabeledObject(obj, labels)" data-dfn-type="argument" data-export="" id="dom-labeledobject-labeledobjectobj-labels-obj">obj<a class="self-link" href="#dom-labeledobject-labeledobjectobj-labels-obj"></a></dfn>, <a data-link-type="idl-name" href="#dictdef-cilabel">CILabel</a> <dfn class="idl-code" data-dfn-for="LabeledObject/LabeledObject(obj, labels)" data-dfn-type="argument" data-export="" id="dom-labeledobject-labeledobjectobj-labels-labels">labels<a class="self-link" href="#dom-labeledobject-labeledobjectobj-labels-labels"></a></dfn>)]
+interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="labeledobject">LabeledObject<a class="self-link" href="#labeledobject"></a></dfn> {
+  readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledobject-confidentiality">confidentiality</a>;
+  readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledobject-integrity">integrity</a>;
 
-  [GetterThrows] readonly attribute object <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="object " href="#dom-labeledjson-json">json</a>;
+  [GetterThrows] readonly attribute object <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="object " href="#dom-labeledobject-protectedobject">protectedObject</a>;
 };
 </pre>
      
@@ -759,24 +775,63 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
     
      <dl>
       
-      <dt><dfn class="idl-code" data-dfn-for="LabeledJSON" data-dfn-type="constructor" data-export="" id="dom-labeledjson-labedjsonjson-labels">LabedJSON(json, labels)<a class="self-link" href="#dom-labeledjson-labedjsonjson-labels"></a></dfn>
+      <dt><dfn class="idl-code" data-dfn-for="LabeledObject" data-dfn-type="constructor" data-export="" id="dom-labeledobject-labeledobjectobj-labels">LabeledObject(obj, labels)<a class="self-link" href="#dom-labeledobject-labeledobjectobj-labels"></a></dfn>
       
       
       <dd>
 
 
-       <p>Let <var>conf</var> be the <a class="idl-code" data-link-type="dict-member" href="#dom-cilabel-confidentiality">confidentiality</a> member
-      of the <a class="idl-code" data-link-type="argument" href="#dom-labeledjson-labeledjsonjson-labels-labels">labels</a> parameter, if it is set.
-      Otherwise, let <var>conf</var> be the <a data-link-type="dfn">current confidentiality label</a>.</p>
+       <p>When invoking the <a data-link-type="functionish" href="#dom-labeledobject-labeledobjectobj-labels">LabeledObject()</a> constructor, the user
+      agent MUST use an algorithm equivalent to the following:</p>
        
 
 
-       <p>Let <var>int</var> be the <a class="idl-code" data-link-type="dict-member" href="#dom-cilabel-integrity">integrity</a> member
-      of the <a class="idl-code" data-link-type="argument" href="#dom-labeledjson-labeledjsonjson-labels-labels">labels</a> parameter, if it is set.
-      Otherwise, let <var>int</var> be the <a data-link-type="dfn" href="#current-integrity-label">current integrity label</a>.</p>
+       <ol>
+        <li data-md="">
+         <p>Let <var>obj clone</var> be the result of obtaining a
+<a data-link-type="dfn" href="http://www.w3.org/TR/html5/infrastructure.html#structured-clone">structured clone</a> of the <a class="idl-code" data-link-type="argument">protectedObject</a> argument.</p>
+         
+
+
+        <li data-md="">
+         <p>Let <var>conf</var> be the <a class="idl-code" data-link-type="dict-member" href="#dom-cilabel-confidentiality">confidentiality</a> member of the <a class="idl-code" data-link-type="argument" href="#dom-labeledobject-labeledobjectobj-labels-labels">labels</a>
+argument, if it is set.  Otherwise, let <var>conf</var> be
+the <a data-link-type="dfn">current confidentiality label</a>.</p>
+         
+
+
+        <li data-md="">
+         <p>Let <var>int</var> be the <a class="idl-code" data-link-type="dict-member" href="#dom-cilabel-integrity">integrity</a> member of the <a class="idl-code" data-link-type="argument" href="#dom-labeledobject-labeledobjectobj-labels-labels">labels</a>
+parameter, if it is set.  Otherwise, let <var>int</var> be the
+<a data-link-type="dfn" href="#current-integrity-label">current integrity label</a>.</p>
+         
+
+
+        <li data-md="">
+         <p>Let <var>canWrite</var> be the result of invoking the <a data-link-type="dfn">write
+guard</a> algorithm with the <var>conf</var> and <var>int</var> labels.</p>
+         
+
+
+        <li data-md="">
+         <p>If <var>canWrite</var> is <code>false</code>, the constructor
+MUST throw a <a data-link-type="dfn">SecurityError</a> exception
+and terminate this algorithm.</p>
+         
+
+
+        <li data-md="">
+         <p>Else, the constructor MUST return a new
+<a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>, with the <a data-link-type="dfn" href="#protected-object">protected object</a>
+set to <var>obj clone</var>, the confidentiality label set to
+<var>conf</var>, and the integrity
+label set to <var>int</var>.</p>
+         
+
+
+
+</ol>
        
-
-
       
       
     
@@ -788,37 +843,38 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
     
      <dl>
       
-      <dt><dfn class="idl-code" data-dfn-for="LabeledJSON" data-dfn-type="attribute" data-export="" id="dom-labeledjson-confidentiality" title="LabeledJSON/confidentiality">confidentiality<a class="self-link" href="#dom-labeledjson-confidentiality"></a></dfn>, <span> of type <a data-link-type="idl-name" href="#label1">Label</a>, readonly</span>
+      <dt><dfn class="idl-code" data-dfn-for="LabeledObject" data-dfn-type="attribute" data-export="" id="dom-labeledobject-confidentiality" title="LabeledObject/confidentiality">confidentiality<a class="self-link" href="#dom-labeledobject-confidentiality"></a></dfn>, <span> of type <a data-link-type="idl-name" href="#label1">Label</a>, readonly</span>
       
       
       <dd>
-        On getting, the user agent must return the <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a>’s confidentiality label.
+        On getting, the user agent MUST return the <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>’s confidentiality label.
       
       
       
-      <dt><dfn class="idl-code" data-dfn-for="LabeledJSON" data-dfn-type="attribute" data-export="" id="dom-labeledjson-integrity" title="LabeledJSON/integrity">integrity<a class="self-link" href="#dom-labeledjson-integrity"></a></dfn>, <span> of type <a data-link-type="idl-name" href="#label1">Label</a>, readonly</span>
-      
-      
-      <dd>
-        On getting, the user agent must return the <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a>’s integrity label.
-      
-      
-      
-      <dt><dfn class="idl-code" data-dfn-for="LabeledJSON" data-dfn-type="attribute" data-export="" id="dom-labeledjson-json" title="LabeledJSON/json">json<a class="self-link" href="#dom-labeledjson-json"></a></dfn>, <span> of type <a data-link-type="idl-name">object</a>, readonly</span>
+      <dt><dfn class="idl-code" data-dfn-for="LabeledObject" data-dfn-type="attribute" data-export="" id="dom-labeledobject-integrity" title="LabeledObject/integrity">integrity<a class="self-link" href="#dom-labeledobject-integrity"></a></dfn>, <span> of type <a data-link-type="idl-name" href="#label1">Label</a>, readonly</span>
       
       
       <dd>
-        On getting, the user agent must follow the following steps:
+        On getting, the user agent MUST return the <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>’s integrity label.
+      
+      
+      
+      <dt><dfn class="idl-code" data-dfn-for="LabeledObject" data-dfn-type="attribute" data-export="" id="dom-labeledobject-protectedobject" title="LabeledObject/protectedObject">protectedObject<a class="self-link" href="#dom-labeledobject-protectedobject"></a></dfn>, <span> of type <a data-link-type="idl-name">object</a>, readonly</span>
+      
+      
+      <dd>
+        On getting, the user agent MUST use an algorithm equivalent to
+        the following:
 
 
        <ol>
         <li data-md="">
-         <p>Apply the <a data-link-type="dfn" href="#taint-current-context">taint current context</a> algorithm to the <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a>’s confidentiality and integrity labels.</p>
+         <p>Invoke the <a data-link-type="dfn" href="#taint-current-context">taint current context</a> algorithm with the <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>’s confidentiality and integrity labels.</p>
          
 
 
         <li data-md="">
-         <p>Return the <a class="idl-code" data-link-type="interface" href="#labeledjson">LabeledJSON</a>’s <a data-link-type="dfn" href="#protected-json-object">protected JSON
+         <p>Return the <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>’s <a data-link-type="dfn" href="#protected-object">protected
  object</a>.</p>
          
 </ol>
@@ -963,7 +1019,7 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
    <li>confidentiality
     <ul>
      <li>dict-member for CILabel, <a href="#dom-cilabel-confidentiality">3.3</a>
-     <li>attribute for LabeledJSON, <a href="#dom-labeledjson-confidentiality">3.3.2</a>
+     <li>attribute for LabeledObject, <a href="#dom-labeledobject-confidentiality">3.3.2</a>
     </ul>
    <li>conformant server, <a href="#conformant-server">Unnumbered section</a>
    <li>conformant user agent, <a href="#conformant-user-agent">Unnumbered section</a>
@@ -973,28 +1029,26 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
    <li>empty label, <a href="#empty-label">3.1</a>
    <li>equals(other), <a href="#dom-label-equalsother">3.1.2</a>
    <li>equivalent, <a href="#equivalent">2</a>
-   <li>fromJSON(json), <a href="#dom-label-fromjsonjson">3.1</a>
+   <li>fromJSON(obj), <a href="#dom-label-fromjsonobj">3.1</a>
    <li>integrity
     <ul>
      <li>dict-member for CILabel, <a href="#dom-cilabel-integrity">3.3</a>
-     <li>attribute for LabeledJSON, <a href="#dom-labeledjson-integrity">3.3.2</a>
+     <li>attribute for LabeledObject, <a href="#dom-labeledobject-integrity">3.3.2</a>
     </ul>
-   <li>json
-    <ul>
-     <li>argument for Label/fromJSON(json), <a href="#dom-label-fromjsonjson-json">3.1</a>
-     <li>argument for LabeledJSON/LabeledJSON(json, labels), <a href="#dom-labeledjson-labeledjsonjson-labels-json">3.3</a>
-     <li>attribute for LabeledJSON, <a href="#dom-labeledjson-json">3.3.2</a>
-    </ul>
-   <li>LabedJSON(json, labels), <a href="#dom-labeledjson-labedjsonjson-labels">3.3.1</a>
    <li>Label(), <a href="#dom-label-label">3.1.1</a>
    <li>Label, <a href="#label1">3.1</a>
    <li>label, <a href="#label">2</a>
-   <li>LabeledJSON, <a href="#labeledjson">3.3</a>
-   <li>LabeledJSON(json, labels), <a href="#dom-labeledjson-labeledjsonjson-labels">3.3</a>
+   <li>LabeledObject, <a href="#labeledobject">3.3</a>
+   <li>LabeledObject(obj, labels), <a href="#dom-labeledobject-labeledobjectobj-labels">3.3.1</a>
    <li>Label(origin), <a href="#dom-label-labelorigin">3.1.1</a>
-   <li>labels, <a href="#dom-labeledjson-labeledjsonjson-labels-labels">3.3</a>
+   <li>labels, <a href="#dom-labeledobject-labeledobjectobj-labels-labels">3.3</a>
    <li>label set, <a href="#label-set">3.1</a>
    <li>normal form, <a href="#normal-form">2</a>
+   <li>obj
+    <ul>
+     <li>argument for Label/fromJSON(obj), <a href="#dom-label-fromjsonobj-obj">3.1</a>
+     <li>argument for LabeledObject/LabeledObject(obj, labels), <a href="#dom-labeledobject-labeledobjectobj-labels-obj">3.3</a>
+    </ul>
    <li>origin, <a href="#dom-label-labelorigin-origin">3.1</a>
    <li>origin label, <a href="#origin-label">2</a>
    <li>_or(other), <a href="#dom-label-_orother">3.1.2</a>
@@ -1005,8 +1059,9 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
      <li>argument for Label/and(other), <a href="#dom-label-andother-other">3.1</a>
      <li>argument for Label/_or(other), <a href="#dom-label-_orother-other">3.1</a>
     </ul>
+   <li>protectedObject, <a href="#dom-labeledobject-protectedobject">3.3.2</a>
    <li>protected
-      JSON object, <a href="#protected-json-object">3.3</a>
+      object, <a href="#protected-object">3.3</a>
    <li>reduce to label normal form, <a href="#reduce-to-label-normal-form">4.1</a>
    <li>subsumes, <a href="#subsumes">2</a>
    <li>subsumes
@@ -1022,14 +1077,12 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
      <li><a href="http://www.w3.org/TR/html5/browsers.html#windows">context</a>
      <li><a href="http://www.w3.org/TR/html5/embedded-content-0.html#the-iframe-element">iframe</a>
      <li><a href="http://www.w3.org/TR/html5/embedded-content-0.html#attr-iframe-sandbox">sandbox</a>
+     <li><a href="http://www.w3.org/TR/html5/infrastructure.html#structured-clone">structurally cloned</a>
+     <li><a href="http://www.w3.org/TR/html5/infrastructure.html#structured-clone">structured clone</a>
     </ul>
    <li><a data-link-type="biblio" href="#biblio-rfc6454">[RFC6454]</a> defines the following terms:
     <ul>
      <li><a href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a>
-    </ul>
-   <li><a data-link-type="biblio" href="#biblio-rfc7159">[rfc7159]</a> defines the following terms:
-    <ul>
-     <li><a href="https://tools.ietf.org/html/rfc4627#section-2">json object</a>
     </ul>
    <li><a data-link-type="biblio" href="#biblio-webmessaging">[webmessaging]</a> defines the following terms:
     <ul>
@@ -1058,8 +1111,6 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
    <dd>Ian Hickson; et al. <a href="http://www.w3.org/TR/html5/">HTML5</a>. 28 October 2014. REC. URL: <a href="http://www.w3.org/TR/html5/">http://www.w3.org/TR/html5/</a>
    <dt id="biblio-rfc2119"><a class="self-link" href="#biblio-rfc2119"></a>[RFC2119]
    <dd>S. Bradner. <a href="https://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>. March 1997. Best Current Practice. URL: <a href="https://tools.ietf.org/html/rfc2119">https://tools.ietf.org/html/rfc2119</a>
-   <dt id="biblio-rfc7159"><a class="self-link" href="#biblio-rfc7159"></a>[RFC7159]
-   <dd>T. Bray, Ed.. <a href="https://tools.ietf.org/html/rfc7159">The JavaScript Object Notation (JSON) Data Interchange Format</a>. March 2014. Proposed Standard. URL: <a href="https://tools.ietf.org/html/rfc7159">https://tools.ietf.org/html/rfc7159</a>
    <dt id="biblio-webmessaging"><a class="self-link" href="#biblio-webmessaging"></a>[WEBMESSAGING]
    <dd>Ian Hickson. <a href="http://www.w3.org/TR/webmessaging/">HTML5 Web Messaging</a>. 19 May 2015. REC. URL: <a href="http://www.w3.org/TR/webmessaging/">http://www.w3.org/TR/webmessaging/</a></dl>
   <h2 class="no-num heading settled" id="idl-index"><span class="content">IDL Index</span><a class="self-link" href="#idl-index"></a></h2>
@@ -1072,7 +1123,7 @@ interface <a href="#label1">Label</a> {
   <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="method" href="#dom-label-_orother">_or</a>(<a data-link-type="idl-name" href="#label1">Label</a> <a href="#dom-label-_orother-other">other</a>);
 
   object <a href="#dom-label-tojson">toJSON</a>();
-  [Throws] static <a data-link-type="idl-name" href="#label1">Label</a> <a href="#dom-label-fromjsonjson">fromJSON</a>(object <a href="#dom-label-fromjsonjson-json">json</a>);
+  [Throws] static <a data-link-type="idl-name" href="#label1">Label</a> <a href="#dom-label-fromjsonobj">fromJSON</a>(object <a href="#dom-label-fromjsonobj-obj">obj</a>);
 };
 
 dictionary <a href="#dictdef-cilabel">CILabel</a> {
@@ -1080,12 +1131,12 @@ dictionary <a href="#dictdef-cilabel">CILabel</a> {
   <a data-link-type="idl-name" href="#label1">Label</a>? <a data-type="Label? " href="#dom-cilabel-integrity">integrity</a>;
 };
 
-[<a href="#dom-labeledjson-labeledjsonjson-labels">Constructor</a>(object <a href="#dom-labeledjson-labeledjsonjson-labels-json">json</a>, <a data-link-type="idl-name" href="#dictdef-cilabel">CILabel</a> <a href="#dom-labeledjson-labeledjsonjson-labels-labels">labels</a>)]
-interface <a href="#labeledjson">LabeledJSON</a> {
-  [Pure] readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledjson-confidentiality">confidentiality</a>;
-  [Pure] readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledjson-integrity">integrity</a>;
+[<a class="idl-code" data-link-type="constructor" href="#dom-labeledobject-labeledobjectobj-labels">Constructor</a>(object <a href="#dom-labeledobject-labeledobjectobj-labels-obj">obj</a>, <a data-link-type="idl-name" href="#dictdef-cilabel">CILabel</a> <a href="#dom-labeledobject-labeledobjectobj-labels-labels">labels</a>)]
+interface <a href="#labeledobject">LabeledObject</a> {
+  readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledobject-confidentiality">confidentiality</a>;
+  readonly attribute <a data-link-type="idl-name" href="#label1">Label</a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="Label " href="#dom-labeledobject-integrity">integrity</a>;
 
-  [GetterThrows] readonly attribute object <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="object " href="#dom-labeledjson-json">json</a>;
+  [GetterThrows] readonly attribute object <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="object " href="#dom-labeledobject-protectedobject">protectedObject</a>;
 };
 
 </pre>

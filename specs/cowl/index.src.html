@@ -43,6 +43,9 @@ spec: HTML5; urlPrefix: http://www.w3.org/TR/html5/
     urlPrefix: browsers.html
       text: context; url: windows
       text: browsing context; url: windows
+    urlPrefix: infrastructure.html
+      text: structured clone; url: structured-clone
+      text: structurally cloned; url: structured-clone
 spec: RFC6454; urlPrefix: https://tools.ietf.org/html/rfc6454
   type: dfn
     text: origin; url: section-3.2
@@ -221,7 +224,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       An <dfn>origin label</dfn>, or more succinctly a
       <dfn>label</dfn>, encodes either a confidentiality or integrity
       security policy. Labels can be associated with <a>contexts</a>
-      and <a>JSON objects</a>.
+      and objects that can be <a>structurally cloned</a>.
 
       When associated with a <a>context</a>, the label restricts the
       origins that the context can communicate with, as detailed in
@@ -247,16 +250,15 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
        to <code>https://a.com</code> to be leaked to <code>https://b.com</code>.
       </div>
 
-      When associated with a <a>JSON object</a>, a confidentiality
+      When associated with an object, a confidentiality
       label specifies the origins to whom the object is sensitive,
       while an integrity label specifies the origins that
       endorse the object. [[#object-labels]] defines how labels are
       associated with objects.
 
       <div class="example">
-        Suppose <code>https://example.com</code> receives a <a>JSON
-        object</a> (e.g., via <a>postMessage()</a>) and has the
-        following labels:
+        Consider <code>https://example.com</code> receiving an object
+        (e.g., via <a>postMessage()</a>) with the following labels:
         
         * Confidentiality label: <code><a interface>Label</a>('https://example.com')</code>.
         This label indicates that the object is confidential to
@@ -301,7 +303,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
     <h3 id="label">Label interface</h3>
-    A <a interface>Label</a> must have an internal <dfn>label set</dfn>, which is
+    A <a interface>Label</a> MUST have an internal <dfn>label set</dfn>, which is
     a non-empty [[!ECMA-262]] <code>Set</code> of <a>disjunction set</a>s.
 
     A <dfn>disjunction set</dfn> is an [[!ECMA-262]]
@@ -320,7 +322,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         Label _or(Label other);
 
         object toJSON();
-        [Throws] static Label fromJSON(object json);
+        [Throws] static Label fromJSON(object obj);
       };
     </pre>
 
@@ -332,38 +334,45 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <dl dfn-for="Label">
       <dt><dfn constructor>Label()</dfn></dt>
       <dd>
-        Returns a new <a>empty label</a>.
+        When invoking the <a>Label()</a> constructor, the user agent
+        MUST return a new <a>empty label</a>.
       </dd>
       <dt><dfn constructor>Label(DOMString origin)</dfn></dt>
       <dd>
-        If the <a argument for="Label/Label(origin)">origin</a> is not
-        a <a>URL</a>, the constructor MUST throw a
-        <code>TypeError</code> exception [[!ECMA-262]].
-        Otherwise, it returns a new <a>Label</a> that contains a <a>label
-        set</a> of a single <a>disjunction set</a>, which itself
-        contains the <a>URL</a> corresponding to the <a>origin</a> of the <a
-        argument for="Label/Label(origin)">origin</a> parameter.
+        When invoking the <a>Label(origin)</a> constructor, the user agent
+        MUST use an algorithm equivalent to the following:
+
+        1.  If the <a argument for="Label/Label(origin)">origin</a>
+        argument is not a <a>URL</a>, the constructor MUST throw a
+        <code>TypeError</code> exception [[!ECMA-262]] and
+        terminate this algorithm.
+
+        2. Else, it MUST return a new <a>Label</a> that contains a
+        <a>label set</a> of a single <a>disjunction set</a>, which
+        itself MUST contain the <a>URL</a> corresponding to the
+        <a>origin</a> of the parameter.
+
       </dd>
     </dl>
     <h4>Methods</h4>
     <dl dfn-for="Label">
       <dt><dfn method title="equals(other)">equals(Label other)</dfn></dt>
       <dd>
-        Returns <code>true</code> if the <a>Label</a> on which the method
+        MUST return <code>true</code> if the <a>Label</a> on which the method
         has been called is <a>equivalent</a> to the <a argument
         for="Label/equals(other)">other</a>
-        parameter; otherwise it returns <code>false</code>
+        parameter; otherwise it MUST return <code>false</code>
       </dd>
       <dt><dfn method title="subsumes(other)">subsumes(Label other)</dfn></dt>
       <dd>
-        Returns <code>true</code> if the <a>Label</a> on which the method
+        MUST returns <code>true</code> if the <a>Label</a> on which the method
         has been called <a>subsumes</a> the <a argument
         for="Label/subsumes(other)">other</a>
-        parameter; otherwise it returns <code>false</code>
+        parameter; otherwise it MUST return <code>false</code>
       </dd>
       <dt><dfn method title="and(other)">and(Label other)</dfn></dt>
       <dd>
-        Returns a new <a>Label</a>, in <a>normal form</a>, which is
+        MUST return a new <a>Label</a>, in <a>normal form</a>, which is
         <a>equivalent</a> to adding the <a argument
         for="Label/and(other)">other</a>'s <a>label set</a> to the
         <a>label set</a> of the <a>Label</a> on which the method was
@@ -371,11 +380,11 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       </dd>
       <dt><dfn method title="_or(other)">_or(Label other)</dfn></dt>
       <dd>
-        Returns a new <a>Label</a>, in <a>normal form</a>, which is
-        <a>equivalent</a> to adding each <a>disjunction set</a> of <a
-        argument for="Label/_or(other)">other</a>'s <a>label set</a>
-        to each <a>disjunction set</a> of the <a>label set</a> of the
-        <a>Label</a> on which the method was invoked.
+        MUST return a new <a>Label</a>, in <a>normal form</a>, which
+        is <a>equivalent</a> to adding each <a>disjunction set</a> of
+        <a argument for="Label/_or(other)">other</a>'s <a>label
+        set</a> to each <a>disjunction set</a> of the <a>label set</a>
+        of the <a>Label</a> on which the method was invoked.
       </dd>
     </dl>
 
@@ -427,14 +436,14 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   </section>
 
   <section>
-    <h3 id="context-labels">Labeling Contexts</h3>
+    <h3 id="context-labels">Labeled Contexts</h3>
   </section>
 
   <section>
-    <h3 id="object-labels">Labeling JSON Objects</h3>
+    <h3 id="object-labels">Labeled Objects</h3>
 
-    A <a interface>LabeledJSON</a> must have an internal <dfn>protected
-      JSON object</dfn>, a confidentiality <a>label</a>, and an
+    A <a interface>LabeledObject</a> MUST have an internal <dfn>protected
+      object</dfn>, a confidentiality <a>label</a>, and an
     integrity <a>label</a>.
 
     <pre class="idl">
@@ -443,50 +452,77 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       Label? integrity;
     };
 
-    [Constructor(object json, CILabel labels)]
-    interface LabeledJSON {
-      [Pure] readonly attribute Label confidentiality;
-      [Pure] readonly attribute Label integrity;
+    [Constructor(object obj, CILabel labels)]
+    interface LabeledObject {
+      readonly attribute Label confidentiality;
+      readonly attribute Label integrity;
 
-      [GetterThrows] readonly attribute object json;
+      [GetterThrows] readonly attribute object protectedObject;
     };
     </pre>
     <h4>Constructors</h4>
-    <dl dfn-for="LabeledJSON">
-      <dt><dfn constructor>LabedJSON(json, labels)</dfn></dt>
+    <dl dfn-for="LabeledObject">
+      <dt><dfn constructor>LabeledObject(obj, labels)</dfn></dt>
       <dd>
 
-      Let <var>conf</var> be the <a dict-member for="CILabel">confidentiality</a> member
-      of the <a argument for="LabeledJSON/LabeledJSON(json, labels)">labels</a> parameter, if it is set.
-      Otherwise, let <var>conf</var> be the <a>current confidentiality label</a>.
+      When invoking the <a>LabeledObject()</a> constructor, the user
+      agent MUST use an algorithm equivalent to the following:
+
+      1. Let <var>obj clone</var> be the result of obtaining a
+      <a>structured clone</a> of the <a argument
+      for="LabeledObject/LabeledObject(obj, labels)">protectedObject</a> argument.
+
+      2. Let <var>conf</var> be the <a dict-member
+      for="CILabel">confidentiality</a> member of the <a argument
+      for="LabeledObject/LabeledObject(obj, labels)">labels</a>
+      argument, if it is set.  Otherwise, let <var>conf</var> be
+      the <a>current confidentiality label</a>.
       
-      Let <var>int</var> be the <a dict-member for="CILabel">integrity</a> member
-      of the <a argument for="LabeledJSON/LabeledJSON(json, labels)">labels</a> parameter, if it is set.
-      Otherwise, let <var>int</var> be the <a>current integrity label</a>.
+      3. Let <var>int</var> be the <a dict-member
+      for="CILabel">integrity</a> member of the <a argument
+      for="LabeledObject/LabeledObject(obj, labels)">labels</a>
+      parameter, if it is set.  Otherwise, let <var>int</var> be the
+      <a>current integrity label</a>.
+
+      4. Let <var>canWrite</var> be the result of invoking the <a>write
+      guard</a> algorithm with the <var>conf</var> and <var>int</var> labels. 
+      
+      5. If <var>canWrite</var> is <code>false</code>, the constructor
+      MUST throw a <a spec="HTML5">SecurityError</a> exception
+      and terminate this algorithm.
+         
+      6. Else, the constructor MUST return a new
+      <a interface>LabeledObject</a>, with the <a>protected object</a>
+      set to <var>obj clone</var>, the confidentiality label set to
+      <var>conf</var>, and the integrity
+      label set to <var>int</var>.
+        
+         
 
 
       </dd>
     </dl>
     <h4>Attributes</h4>
-    <dl dfn-for="LabeledJSON">
-      <dt><dfn attribute title="LabeledJSON/confidentiality">confidentiality</dfn></dt>
+    <dl dfn-for="LabeledObject">
+      <dt><dfn attribute title="LabeledObject/confidentiality">confidentiality</dfn></dt>
       <dd>
-        On getting, the user agent must return the <a
-        interface>LabeledJSON</a>'s confidentiality label.
+        On getting, the user agent MUST return the <a
+        interface>LabeledObject</a>'s confidentiality label.
       </dd>
-      <dt><dfn attribute title="LabeledJSON/integrity">integrity</dfn></dt>
+      <dt><dfn attribute title="LabeledObject/integrity">integrity</dfn></dt>
       <dd>
-        On getting, the user agent must return the <a
-        interface>LabeledJSON</a>'s integrity label.
+        On getting, the user agent MUST return the <a
+        interface>LabeledObject</a>'s integrity label.
       </dd>
-      <dt><dfn attribute title="LabeledJSON/json">json</dfn></dt>
+      <dt><dfn attribute title="LabeledObject/protectedObject">protectedObject</dfn></dt>
       <dd>
-        On getting, the user agent must follow the following steps:
+        On getting, the user agent MUST use an algorithm equivalent to
+        the following:
 
-        1. Apply the <a>taint current context</a> algorithm to the <a
-        interface>LabeledJSON</a>'s confidentiality and integrity labels.
+        1. Invoke the <a>taint current context</a> algorithm with the <a
+        interface>LabeledObject</a>'s confidentiality and integrity labels.
 
-        2. Return the <a interface>LabeledJSON</a>'s <a>protected JSON
+        2. Return the <a interface>LabeledObject</a>'s <a>protected 
            object</a>.
       </dd>
     </dl>

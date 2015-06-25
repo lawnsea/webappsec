@@ -174,11 +174,19 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
   <h3 id="examples">Use Cases/Examples</h3>
-  <h4 id="examples-checker">Untrusted library</h4>
+  <h4 id="examples-checker">Untrusted library or service</h4>
+
+  An author wishes to use a library or service (e.g., in the form of
+  an iframe) without trusting it (or its dependencies) to not leak
+  their sensitive data. The author can use COWL to specify a
+  <a>label</a> policy on the data, e.g., which origins are allowed to
+  read the data, and confine the untrusted code once it inspects the
+  sensitive data (such that it can only communicate according to the
+  policy).
 
   <div class="example">
     Consider using a third-party password strength checker provided by
-    <code>https://untrusted.com</code>, e.g., in the form of an
+    <code>https://untrusted.com</code>, loaded in the form of an
     iframe. To protect the confidentiality of the password, the
     <code>https://example.com</code> application can use COWL to
     associate a confidentiality policy, in the form of a <a>label</a>,
@@ -195,7 +203,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     // Send the labeled password to the checker iframe:
     checker.postMessage(labeledPassword, 'https://untrusted.com');
 
-    // ... register listener to receive response from checker
+    // Register listener to receive response from checker, ...
     </code></pre>
 
     Once the checker inspects the password, COWL limits the iframe to
@@ -342,10 +350,10 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   <section>
     <h3 id="label">Label interface</h3>
     A <a interface>Label</a> MUST have an internal <dfn>label set</dfn>, which is
-    a non-empty [[!ECMA-262]] <code>Set</code> of <a>disjunction set</a>s.
+    a non-empty set of <a>disjunction set</a>s.
 
-    A <dfn>disjunction set</dfn> is an [[!ECMA-262]]
-    <code>Set</code> of <a>origin</a> <a>URL</a>s.
+    A <dfn>disjunction set</dfn> is a set of <a>origin</a>
+    <a>URL</a>s.
 
     A label is said to be an <dfn>empty label</dfn> if its <a>label
       set</a> contains a single, empty <a>disjunction set</a>.
@@ -426,8 +434,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       </dd>
     </dl>
 
-    ISSUE: describe the other methods and constructor; should we use
-    mathematical representation instead of ECMA-262 Sets?
+    ISSUE: describe the <a>toJSON()</a> and <a>fromJSON()</a>
 
     <div class="example">
       Examples creating confidentiality labels.

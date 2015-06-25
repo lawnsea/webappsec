@@ -71,7 +71,7 @@
    <h1 class="p-name no-ref" id="title">Confinement with Origin Web Labels</h1>
   
    <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft,
-    <time class="dt-updated" datetime="2015-06-24">24 June 2015</time></span></h2>
+    <time class="dt-updated" datetime="2015-06-25">25 June 2015</time></span></h2>
   
    <div data-fill-with="spec-metadata">
     <dl>
@@ -177,7 +177,7 @@ privilege-separated, compartmentalized applications.</p>
       <li><a href="#goals"><span class="secno">1.1</span> <span class="content">Goals</span></a>
       <li><a href="#examples"><span class="secno">1.2</span> <span class="content">Use Cases/Examples</span></a>
        <ul class="toc">
-        <li><a href="#examples-checker"><span class="secno">1.2.1</span> <span class="content">Untrusted library</span></a>
+        <li><a href="#examples-checker"><span class="secno">1.2.1</span> <span class="content">Untrusted library or service</span></a>
         <li><a href="#examples-mashup"><span class="secno">1.2.2</span> <span class="content">Third-party mashup</span></a>
         <li><a href="#examples-leastpriv"><span class="secno">1.2.3</span> <span class="content">Least-privileged content</span></a>
         <li><a href="#examples-privsep"><span class="secno">1.2.4</span> <span class="content">Privilege separation</span></a>
@@ -352,13 +352,23 @@ which have the same privileges as content.</p>
      <h3 class="heading settled" data-level="1.2" id="examples"><span class="secno">1.2. </span><span class="content">Use Cases/Examples</span><a class="self-link" href="#examples"></a></h3>
      
   
-     <h4 class="heading settled" data-level="1.2.1" id="examples-checker"><span class="secno">1.2.1. </span><span class="content">Untrusted library</span><a class="self-link" href="#examples-checker"></a></h4>
+     <h4 class="heading settled" data-level="1.2.1" id="examples-checker"><span class="secno">1.2.1. </span><span class="content">Untrusted library or service</span><a class="self-link" href="#examples-checker"></a></h4>
+     
+
+
+     <p>An author wishes to use a library or service (e.g., in the form of
+  an iframe) without trusting it (or its dependencies) to not leak
+  their sensitive data. The author can use COWL to specify a
+  <a data-link-type="dfn" href="#label">label</a> policy on the data, e.g., which origins are allowed to
+  read the data, and confine the untrusted code once it inspects the
+  sensitive data (such that it can only communicate according to the
+  policy).</p>
      
 
   
-     <div class="example" id="example-3f34fcd6"><a class="self-link" href="#example-3f34fcd6"></a>
+     <div class="example" id="example-86f3063f"><a class="self-link" href="#example-86f3063f"></a>
     Consider using a third-party password strength checker provided by
-    <code>https://untrusted.com</code>, e.g., in the form of an
+    <code>https://untrusted.com</code>, loaded in the form of an
     iframe. To protect the confidentiality of the password, the
     <code>https://example.com</code> application can use COWL to
     associate a confidentiality policy, in the form of a <a data-link-type="dfn" href="#label">label</a>,
@@ -375,7 +385,7 @@ var labeldPassword = new <a class="idl-code" data-link-type="interface" href="#l
 // Send the labeled password to the checker iframe:
 checker.postMessage(labeledPassword, 'https://untrusted.com');
 
-// ... register listener to receive response from checker
+// Register listener to receive response from checker, ...
 </code></pre>
       
 
@@ -592,11 +602,11 @@ object was not tampered by <code>https://b.com</code>.</p>
      <h3 class="heading settled" data-level="3.1" id="label0"><span class="secno">3.1. </span><span class="content">Label interface</span><a class="self-link" href="#label0"></a></h3>
      
     A <a class="idl-code" data-link-type="interface" href="#label1">Label</a> MUST have an internal <dfn data-dfn-type="dfn" data-noexport="" id="label-set">label set<a class="self-link" href="#label-set"></a></dfn>, which is
-    a non-empty <a data-link-type="biblio" href="#biblio-ecma-262">[ECMA-262]</a> <code>Set</code> of <a data-link-type="dfn" href="#disjunction-set">disjunction set</a>s.
+    a non-empty set of <a data-link-type="dfn" href="#disjunction-set">disjunction set</a>s.
 
 
-     <p>A <dfn data-dfn-type="dfn" data-noexport="" id="disjunction-set">disjunction set<a class="self-link" href="#disjunction-set"></a></dfn> is an <a data-link-type="biblio" href="#biblio-ecma-262">[ECMA-262]</a>
-    <code>Set</code> of <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a> <a data-link-type="dfn" href="http://dom.spec.whatwg.org/#concept-document-url">URL</a>s.</p>
+     <p>A <dfn data-dfn-type="dfn" data-noexport="" id="disjunction-set">disjunction set<a class="self-link" href="#disjunction-set"></a></dfn> is a set of <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a>
+    <a data-link-type="dfn" href="http://dom.spec.whatwg.org/#concept-document-url">URL</a>s.</p>
      
 
 
@@ -723,8 +733,7 @@ itself MUST contain the <a data-link-type="dfn" href="http://dom.spec.whatwg.org
      
 
 
-     <p class="issue" id="issue-4cfef4cf"><a class="self-link" href="#issue-4cfef4cf"></a> describe the other methods and constructor; should we use
-    mathematical representation instead of ECMA-262 Sets?</p>
+     <p class="issue" id="issue-620ca5f0"><a class="self-link" href="#issue-620ca5f0"></a> describe the <a data-link-type="functionish" href="#dom-label-tojson">toJSON()</a> and <a data-link-type="functionish" href="#dom-label-fromjsonobj">fromJSON()</a></p>
      
 
     
@@ -1255,8 +1264,7 @@ interface <a href="#labeledobject">LabeledObject</a> {
    <div class="issue"> Current WebIDL implementation requires an underscore for
     certain identifiers. Can we rename <code>_or</code> to
     <code>or</code>?<a href="#issue-afa876b4"> ↵ </a></div>
-   <div class="issue"> describe the other methods and constructor; should we use
-    mathematical representation instead of ECMA-262 Sets?<a href="#issue-4cfef4cf"> ↵ </a></div>
+   <div class="issue"> describe the <a data-link-type="functionish" href="#dom-label-tojson">toJSON()</a> and <a data-link-type="functionish" href="#dom-label-fromjsonobj">fromJSON()</a><a href="#issue-620ca5f0"> ↵ </a></div>
    <div class="issue"> describe the reduction algorithm<a href="#issue-a82506bb"> ↵ </a></div>
    <div class="issue"> describe the subsumes algorithm<a href="#issue-3dc7e411"> ↵ </a></div>
    <div class="issue"> describe taint<a href="#issue-9c43f37a"> ↵ </a></div>

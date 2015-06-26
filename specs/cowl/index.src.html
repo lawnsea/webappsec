@@ -357,6 +357,10 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
     <h3 id="label">Label interface</h3>
+
+    Each <a>label</a> is represented by a <a interface>Label</a>
+    object, the interface of which is defined in this section.
+
     A <a interface>Label</a> MUST have an internal <dfn>label set</dfn>, which is
     a non-empty set of <a>disjunction set</a>s.
 
@@ -518,9 +522,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   </section>
 
   <section>
-    <h3 id="context-labels">Labeled Contexts</h3>
-    <h3 id="context-API">COWL Interface</h3>
-
+    <h3 id="privileges">Privileges</h3>
     <pre class="idl">
       [Constructor, NamedConstructor=FreshPrivilege]
       interface Privilege {
@@ -533,6 +535,16 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         [Throws] Privilege mint(Label label);
       };
 
+      partial interface Label {
+        boolean subsumes(Label other, Privilege privs);
+      };
+    </pre>
+  </section>
+
+  <section>
+    <h3 id="context-labels">Labeled Contexts</h3>
+
+    <pre class="idl">
       interface COWL {
         static attribute boolean enabled;
 
@@ -542,10 +554,6 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         [SetterThrows] static attribute Privilege privilege;
       };
     </pre>
-
-    ISSUE: define priv API
-
-    ISSUE: extend label subsumes API to take a privilege
 
     <h4>Attributes</h4>
     <dl dfn-for="COWL">
@@ -563,7 +571,14 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On getting, the user agent MUST return the <a>current
         confidentiality label</a>.
 
-        ISSUE: on setting curr c label
+        * On setting, the user agent MUST use an algorithm equivalent
+        to the following:
+        
+          1. Invoke the <a>context tainting</a> algorithm with the set
+          confidentiality label and <a>current integrity label</a>.
+
+          2. If the <a>context tainting</a> algorithm raises an
+          exception, the user agent MUST rethrow the exception.
 
       </dd>
       <dt><dfn attribute title="COWL/integrity">integrity</dfn></dt>
@@ -571,7 +586,14 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On getting, the user agent MUST return the <a>current
         integrity label</a>.
 
-        ISSUE: on setting curr i label
+        * On setting, the user agent MUST use an algorithm equivalent
+        to the following:
+
+          1. Invoke the <a>context tainting</a> algorithm with the
+          <a>current confidentiality label</a> and set integrity label.
+
+          2. If the <a>context tainting</a> algorithm raises an
+          exception, the user agent MUST rethrow the exception.
 
       </dd>
       <dt><dfn attribute title="COWL/privilege">privilege</dfn></dt>
@@ -681,9 +703,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
         1. Invoke the <a>context tainting</a> algorithm with the <a
         interface>LabeledObject</a>'s confidentiality and integrity labels.
+        
+        2. If the <a>context tainting</a> algorithm raises an
+        exception, rethrow the exception and terminate this algorithm.
 
-        2. Return the <a interface>LabeledObject</a>'s <a>protected
-           object</a>.
+        3. Return the <a interface>LabeledObject</a>'s <a>protected
+        object</a>.
       </dd>
     </dl>
 

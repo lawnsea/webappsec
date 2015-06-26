@@ -46,6 +46,7 @@ spec: HTML5; urlPrefix: http://www.w3.org/TR/html5/
     urlPrefix: infrastructure.html
       text: structured clone; url: structured-clone
       text: structurally cloned; url: structured-clone
+      text: structurally clonable; url: structured-clone
 spec: RFC6454; urlPrefix: https://tools.ietf.org/html/rfc6454
   type: dfn
     text: origin; url: section-3.2
@@ -264,12 +265,14 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 <!-- Big Text: definitions -->
 <section>
   <h2 id="key-concepts">Key Concepts and Terminology</h2>
+  <h3>Labels</h3>
   <ol>
     <li>
       An <dfn>origin label</dfn>, or more succinctly a
       <dfn>label</dfn>, encodes either a confidentiality or integrity
-      security policy. Labels can be associated with <a>contexts</a>
-      and objects that can be <a>structurally cloned</a>.
+      security policy. Labels are associated with <a>contexts</a>;
+      they can also be associated with <a>structurally clonable</a>
+      objects.
 
       When associated with a <a>context</a>, the label restricts the
       origins that the context can communicate with, as detailed in
@@ -303,9 +306,9 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       called <dfn>labeled objects</dfn>.
 
       <div class="example">
-        Consider <code>https://example.com</code> receiving a labeled
-        object (e.g., via <a>postMessage()</a>) with the following
-        labels:
+        Consider an <code>https://example.com</code> application that
+        receives a labeled object (e.g., via <a>postMessage()</a>)
+        with the following labels:
 
         * Confidentiality label: 
         <code><a interface>Label</a>('https://example.com')</code>.
@@ -324,7 +327,10 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <li>
       A label is in <dfn>normal form</dfn> if reducing it according to
       the <a>label normal form reduction</a> algorithm produces the
-      same value.
+      same value. Mathematically, a label in <a>normal form</a>
+      corresponds to a set of origins in <a>conjunction normal form</a>.
+
+      ISSUE: is there a citation for CNF?
     </li>
     <li>
       Two labels are <dfn>equivalent</dfn> if their <a>normal form</a>
@@ -332,7 +338,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     </li>
     <li>
       A label <var>A</var> <dfn>subsumes</dfn> another label
-      <var>B</var> if the result of running the <a>label subsumtion</a>
+      <var>B</var> if the result of running the <a>label subsumption</a>
       algorithm on the <a>normal form</a>s of <var>A</var> and
       <var>B</var> returns <code>true</code>.
     </li>
@@ -347,6 +353,66 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       integrity label associated with the current context.
       [[#context-labels]] specifies how labels are associated with
       contexts.
+    </li>
+  </ol>
+  <h3>Privileges</h3>
+  <ol>
+    <li>
+      A <dfn>privilege</dfn> is an unforgeable object that corresponds
+      to a <a>label</a>. Privileges are associated with contexts.
+
+      Privileges can be used to bypass confinement restrictions
+      imposed by confidentiality labels.  In particular, a privilege
+      can be used to bypass the restrictions imposed by any label that
+      its underlying label subsumes.
+
+      <div class="example">
+        Consider an <code>http://a.com</code> contexts whose
+        <a>current confidentiality label</a> is <code><a
+            interface>Label</a>('http://a.com').and('http://b.com')</code>.
+        This label confines the context to only communicating with
+        entities whose labels are at least as restricting as this
+        label. For example, it restricts the context from
+        communicating with a context labeled <code><a
+           interface>Label</a>('http://b.com')</code> context, since doing
+       so would potentially leak <code>http://a.com</code> data to 
+       <code>http://b.com</code>. It similarly cannot communicate with
+       <code>http://a.com</code>
+
+       However, if the context's <a>current privilege</a> corresponds
+       to <code><a interface>Label</a>('http://a.com')</code>, then it
+       would be able to bypass the restriction imposed by this label.
+       In particular, the context would be able to communicate with
+       <code>http://b.com</code>&mdash;the privilege confers the right
+       to declassify <code>http://a.com</code> data to
+       <code>http://b.com</code>&mdash;since the <a>effective
+       confidentiality label</a> is
+       <code><a interface>Label</a>('http://b.com')</code>.
+
+       Note, the privilege cannot bypass any label restrictions. For
+       example, it does not allow the context to communicate with
+       <code>http://a.com</code> since doing so would potentially leak
+       <code>http://b.com</code> data.
+      </div>
+
+      ISSUE: describe integrity and privs
+    </li>
+    <li>
+      The <dfn>current privilege</dfn> is the privilege associated
+      with the current context. [[#context-labels]] specifies how
+      privileges are associated with contexts.
+    </li>
+    <li>
+      The <dfn>effective confidentiality label</dfn> is the label
+      returned by the <a>label downgrade</a> algorithm when invoked
+      with the <a>current confidentiality label</a> and <a>current
+      privilege</a>.
+    </li>
+    <li>
+      The <dfn>effective integrity label</dfn> is the label
+      returned by the <a>label downgrade</a> algorithm when invoked
+      with the <a>current integrity label</a> and <a>current
+      privilege</a>.
     </li>
   </ol>
 </section>
@@ -573,12 +639,19 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
         * On setting, the user agent MUST use an algorithm equivalent
         to the following:
-        
-          1. Invoke the <a>context tainting</a> algorithm with the set
-          confidentiality label and <a>current integrity label</a>.
 
-          2. If the <a>context tainting</a> algorithm raises an
-          exception, the user agent MUST rethrow the exception.
+          1. Let <var>conf</var> be the set confidentiality label.
+        
+          2. Let <var>canWrite</var> be the result of invoking
+          the <a>write check</a> algorithm with <var>conf</var>
+          and the <a>current integrity label</a>.
+          
+          3. If <var>canWrite</var> is <code>false</code>, the user
+          agent MUST throw a <a spec="HTML5">SecurityError</a>
+          exception and terminate this algorithm.
+
+          4. Else, the user agent MUST set the <a>current
+          confidentiality label</a> to <var>conf</var>
 
       </dd>
       <dt><dfn attribute title="COWL/integrity">integrity</dfn></dt>
@@ -589,11 +662,18 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On setting, the user agent MUST use an algorithm equivalent
         to the following:
 
-          1. Invoke the <a>context tainting</a> algorithm with the
-          <a>current confidentiality label</a> and set integrity label.
+          1. Let <var>int</var> be the set integrity label.
+        
+          2. Let <var>canWrite</var> be the result of invoking the
+          <a>write check</a> algorithm with the <a>current
+          confidentiality label</a> and <var>conf</var>.
+          
+          3. If <var>canWrite</var> is <code>false</code>, the user
+          agent MUST throw a <a spec="HTML5">SecurityError</a>
+          exception and terminate this algorithm.
 
-          2. If the <a>context tainting</a> algorithm raises an
-          exception, the user agent MUST rethrow the exception.
+          4. Else, the user agent MUST set the <a>current
+          integrity label</a> to <var>int</var>
 
       </dd>
       <dt><dfn attribute title="COWL/privilege">privilege</dfn></dt>
@@ -749,18 +829,27 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <h3 id="reduce-to-normal-form">Label Normal Form Reduction</h3>
     The <dfn>label normal form reduction</dfn> algorithm takes a
     <var>label</var> argument and produces a <a>Label</a> value
-    according to these steps:
+    according to the following steps:
 
     ISSUE: describe the reduction algorithm
 
   </section>
   <section>
     <h3 id="subsumes-check">Label Subsumption</h3>
-    The <dfn>label subsumtion</dfn> algorithm takes a two labels
+    The <dfn>label subsumption</dfn> algorithm takes a two labels
     <var>A</var> and <var>B</var> and produces a boolean according to
     these steps:
 
     ISSUE: describe the subsumes algorithm
+
+  </section>
+  <section>
+    <h3 id="label-reduce">Label Downgrade</h3>
+    The <dfn>label downgrade</dfn> algorithm takes a label,
+    <var>label</var> and a privilege<var>priv</var>, and returns
+    the least restricting label according to the following steps:
+
+    ISSUE: describe downgrade
 
   </section>
   <section>

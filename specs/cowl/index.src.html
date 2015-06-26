@@ -307,11 +307,13 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         object (e.g., via <a>postMessage()</a>) with the following
         labels:
 
-        * Confidentiality label: <code><a interface>Label</a>('https://example.com')</code>.
+        * Confidentiality label: 
+        <code><a interface>Label</a>('https://example.com')</code>.
         This label indicates that the object is confidential to
         <code>https://example.com</code>.
 
-        * Integrity label: <code><a interface>Label</a>('https://a.com')</code>.
+        * Integrity label: 
+        <code><a interface>Label</a>('https://a.com')</code>.
         This label indicates that the object has been endorsed by
         <code>https://a.com</code>. If
         <code>https://example.com</code> received the message from
@@ -426,7 +428,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <dd>
         The user agent MUST use an algorithm equivalent to the following:
 
-        1. Let <var>O</var> be the <a argument for="Label/and(other)">other</a> argument.
+        1. Let <var>O</var> be the
+        <a argument for="Label/and(other)">other</a> argument.
 
         1.  If the type of <a argument for="Label/and(other)">other</a> is
         <a>DOMString</a>, run the following sub-steps:
@@ -447,7 +450,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <dd>
         The user agent MUST use an algorithm equivalent to the following:
 
-        1. Let <var>O</var> be the <a argument for="Label/and(other)">other</a> argument.
+        1. Let <var>O</var> be the
+        <a argument for="Label/and(other)">other</a> argument.
 
         1.  If the type of <a argument for="Label/_or(other)">other</a> is
         <a>DOMString</a>, run the following sub-steps:
@@ -515,11 +519,78 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
     <h3 id="context-labels">Labeled Contexts</h3>
+    <h3 id="context-API">COWL Interface</h3>
+
+    <pre class="idl">
+      [Constructor, NamedConstructor=FreshPrivilege]
+      interface Privilege {
+        boolean equals(Privilege other);
+        boolean subsumes(Privilege other);
+
+        Label asLabel();
+
+        Privilege combine(Privilege other);
+        [Throws] Privilege mint(Label label);
+      };
+
+      interface COWL {
+        static attribute boolean enabled;
+
+        [SetterThrows] static attribute Label confidentiality;
+        [SetterThrows] static attribute Label integrity;
+
+        [SetterThrows] static attribute Privilege privilege;
+      };
+    </pre>
+
+    ISSUE: define priv API
+
+    ISSUE: extend label subsumes API to take a privilege
+
+    <h4>Attributes</h4>
+    <dl dfn-for="COWL">
+      <dt><dfn attribute title="COWL/enabled">enabled</dfn></dt>
+      <dd>
+        * On setting, the user agent MUST enable <a>confinement mode</a> for
+        the current context.
+
+        * On getting, the user agent MUST return <code>true</code> if
+        the <a>confinement mode</a> was enabled for the current context;
+        else, it MUST return <code>false</code>
+      </dd>
+      <dt><dfn attribute title="COWL/confidentiality">confidentiality</dfn></dt>
+      <dd>
+        * On getting, the user agent MUST return the <a>current
+        confidentiality label</a>.
+
+        ISSUE: on setting curr c label
+
+      </dd>
+      <dt><dfn attribute title="COWL/integrity">integrity</dfn></dt>
+      <dd>
+        * On getting, the user agent MUST return the <a>current
+        integrity label</a>.
+
+        ISSUE: on setting curr i label
+
+      </dd>
+      <dt><dfn attribute title="COWL/privilege">privilege</dfn></dt>
+      <dd>
+        * On getting, the user agent MUST return the <a>current
+        privilege</a>.
+
+        ISSUE: on setting privs
+
+      </dd>
+    </dl>
   </section>
 
   <section>
     <h3 id="object-labels">Labeled Objects</h3>
 
+    <em>This section is not normative.</em>
+
+    <h4 id="object-labels">Labeled Objects Interface</h4>
     A <a interface>LabeledObject</a> MUST have an internal <dfn>protected
       object</dfn>, a confidentiality <a>label</a>, and an
     integrity <a>label</a>.
@@ -536,6 +607,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       readonly attribute Label integrity;
 
       [GetterThrows] readonly attribute object protectedObject;
+
+      [Throws] LabeledObject clone(Label confidentiality, Label integrity);
     };
     </pre>
     <h4>Constructors</h4>
@@ -633,6 +706,11 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       most as trustworthy as the data, for the read data may have
       influenced the computation.
     </div>
+
+    <h4>Methods</h4>
+
+    ISSUE describe <code>clone</code>
+
 
 
   </section>

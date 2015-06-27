@@ -54,6 +54,8 @@ spec: RFC6454; urlPrefix: https://tools.ietf.org/html/rfc6454
 spec: URL; urlPrefix: http://www.w3.org/TR/url/
   type: interface
     text: URL; url: concept-url
+  type: dfn
+    text: scheme; url: concept-url-scheme
   type: attribute
     text: host; for: URL; url: concept-url-host
     text: path; for: URL; url: concept-url-path
@@ -68,6 +70,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 <!-- BIBLIOGRAPHY -->
 <pre class="biblio">
 {
+  "DCLabels": {
+    "authors": ["Deian Stefan", "Alejandro Russo", "David Mazieres", "John C. Mitchell"],
+    "title": "Disjunction Category Labels",
+    "href": "http://www.scs.stanford.edu/~deian/pubs/stefan:2011:dclabels.pdf",
+    "publisher": "Springer Berlin Heidelberg"
+  },
   "URL": {
     "authors": [ "Anne van Kesteren", "Sam Ruby" ],
     "title": "URL",
@@ -200,11 +208,11 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     // to https://example.com and should only be disclosed to this origin:
     var policy = new <a interface>Label</a>(window.location.origin);
 
-    // Associate the label with password:
+    // Associate the label with the password:
     var labeldPassword = new <a interface>LabeledObject</a>(password, {confidentiality: policy});
 
     // Send the labeled password to the checker iframe:
-    checker.postMessage(labeledPassword, 'https://untrusted.com');
+    checker.postMessage(labeledPassword, "https://untrusted.com");
 
     // Register listener to receive response from checker, ...
     </code></pre>
@@ -281,7 +289,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <div class="example">
        When associate with a context, the confidentiality label
        <code>
-          <a interface>Label</a>('https://a.com').<a>or</a>('https://b.com')
+          <a interface>Label</a>("https://a.com").<a>or</a>("https://b.com")
        </code>
        restricts the context to sending data to
        <code>https://a.com</code> or <code>https://b.com</code>, but
@@ -293,7 +301,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
        Note, because the context can communicate data to either origin,
        another context associated with the more-strict
-       <code><a interface>Label</a>('https://a.com')</code> label cannot
+       <code><a interface>Label</a>("https://a.com")</code> label cannot
        send it data. Doing so may allow for data confidential
        to <code>https://a.com</code> to be leaked to <code>https://b.com</code>.
       </div>
@@ -311,12 +319,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         with the following labels:
 
         * Confidentiality label: 
-        <code><a interface>Label</a>('https://example.com')</code>.
+        <code><a interface>Label</a>("https://example.com")</code>.
         This label indicates that the object is confidential to
         <code>https://example.com</code>.
 
         * Integrity label: 
-        <code><a interface>Label</a>('https://a.com')</code>.
+        <code><a interface>Label</a>("https://a.com")</code>.
         This label indicates that the object has been endorsed by
         <code>https://a.com</code>. If
         <code>https://example.com</code> received the message from
@@ -328,9 +336,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       A label is in <dfn>normal form</dfn> if reducing it according to
       the <a>label normal form reduction</a> algorithm produces the
       same value. Mathematically, a label in <a>normal form</a>
-      corresponds to a set of origins in <a>conjunction normal form</a>.
-
-      ISSUE: is there a citation for CNF?
+      corresponds to a set of origins in <a>conjunction normal
+        form</a> [[DCLabels]].
     </li>
     <li>
       Two labels are <dfn>equivalent</dfn> if their <a>normal form</a>
@@ -341,6 +348,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       <var>B</var> if the result of running the <a>label subsumption</a>
       algorithm on the <a>normal form</a>s of <var>A</var> and
       <var>B</var> returns <code>true</code>.
+    </li>
+    <li>
+      When reading a <a>labeled objects</a> a context gets
+      <dfn>tainted</dfn> (through invocations of the <a>context
+      tainting</a> algorithm) to reflect that it has read sensitive
+      data and should be confined accordingly.
     </li>
     <li>
       The <dfn>current confidentiality label</dfn> is the
@@ -364,30 +377,31 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       Privileges can be used to bypass confinement restrictions
       imposed by confidentiality labels.  In particular, a privilege
       can be used to bypass the restrictions imposed by any label that
-      its underlying label subsumes.
+      its underlying label&mdash;the <a>internal privilege
+      label</a>&mdash;subsumes.
 
       <div class="example">
         Consider an <code>https://a.com</code> contexts whose
         <a>current confidentiality label</a> is <code><a
-            interface>Label</a>('https://a.com').and('https://b.com')</code>.
+            interface>Label</a>("https://a.com").and("https://b.com")</code>.
         This label confines the context to only communicating with
         entities whose labels are at least as restricting as this
         label. For example, it restricts the context from
         communicating with a context labeled <code><a
-           interface>Label</a>('https://b.com')</code> context, since doing
+           interface>Label</a>("https://b.com")</code> context, since doing
        so would potentially leak <code>https://a.com</code> data to 
        <code>https://b.com</code>. It similarly cannot communicate with
        <code>https://a.com</code>
 
        However, if the context's <a>current privilege</a> corresponds
-       to <code><a interface>Label</a>('https://a.com')</code>, then it
+       to <code><a interface>Label</a>("https://a.com")</code>, then it
        would be able to bypass the restriction imposed by this label.
        In particular, the context would be able to communicate with
        <code>https://b.com</code>&mdash;the privilege confers the right
        to declassify <code>https://a.com</code> data to
        <code>https://b.com</code>&mdash;since the <a>effective
        confidentiality label</a> is
-       <code><a interface>Label</a>('https://b.com')</code>.
+       <code><a interface>Label</a>("https://b.com")</code>.
 
        Note, the privilege cannot bypass any label restrictions. For
        example, it does not allow the context to communicate with
@@ -395,7 +409,51 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
        <code>https://b.com</code> data.
       </div>
 
-      ISSUE: describe integrity and privs
+      Privileges can also be used to bypass integrity restrictions
+      imposed by integrity labels. In particular, a privilege can be
+      used to endorse an otherwise untrustworthy <a>labeled
+      context</a> (or <a>labeled object</a>) thereby allowing it to
+      communicate with more trustworthy end-points (another context or
+      server).
+
+      <div class="example">
+        Consider an <code>https://a.com</code> contexts whose
+        <a>current integrity label</a> is
+        <code><a interface>Label</a>("https://a.com").or("https://b.com")</code>.
+        This label confines the context to only communicating with
+        entities that are at most as trustworthy as this
+        label. For example, it restricts the context from
+        communicating with a context whose <a>current integrity
+        label</a> is
+        <code><a interface>Label</a>("https://a.com")</code>, since doing
+        so would potentially corrupt
+        <code>https://a.com</code> data&mdash;the computation was
+        potentially influence by <code>https://b.com</code>.
+
+       However, if the context's <a>current privilege</a> corresponds
+       to <code><a interface>Label</a>("https://a.com")</code>, then it
+       would be able to bypass the restriction imposed by this label.
+       In particular, the context would be able to communicate with
+       the other context since the privilege confers it the right
+       to speak on behalf of <code>https://a.com</code>. Indeed, its
+       <a>effective integrity label</a> is <code><a
+       interface>Label</a>("https://b.com")</code>. (Of course, the
+       context is responsible for ensuring that
+       <code>http://b.com</code> data did not influence it's behaviour
+       in an inadvertent way.)
+
+       Note, the privilege cannot bypass any label restrictions. For
+       example, it does not allow the context to communicate with
+       a context whose integrity label is
+       <code><a interface>Label</a>(https://b.com</code>.
+      </div>
+
+      Note, <a>browsing contexts</a> have a <a>current privilege</a>
+      that, by default, corresponds to the origin of the context, as
+      described in [[#context-labels]]. Authors can set the <a>current
+      privilege</a> of a context to ensure that it runs with <em>least
+      privilege</em>.
+
     </li>
     <li>
       The <dfn>current privilege</dfn> is the privilege associated
@@ -415,7 +473,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       privilege</a>.
     </li>
     <li>
-      Code can take <em>ownership</em> of a <a>privilege</a>
+      Code can take <dfn>ownership</dfn> of a <a>privilege</a>
       <var>priv</var> by
       setting the <a>current privilege</a> to the privilege produced
       by <a>combining</a> the <a>current privilege</a> and
@@ -554,26 +612,26 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       Examples creating confidentiality labels.
       <pre><code>
       // Create empty label. This corresponds to public data.
-      var empty = new Label();
+      var empty = new <a interface>Label</a>();
 
       // Create a label that may used to protect data sensitive to a.com
-      var a = new Label('https://a.com');
+      var a = new <a interface>Label</a>("https://a.com");
 
       // Create a label that may used to protect data sensitive to b.com
-      var a = new Label('https://b.com');
+      var a = new <a interface>Label</a>("https://b.com");
 
       // Create a label that may used to protect data that is
       // sensitive to both a.com and b.com
-      var aANDb = new Label('https://a.com').and('https://b.com');
+      var aANDb = new <a interface>Label</a>("https://a.com").and("https://b.com");
 
       // Create a label that may used to protect data that either
       // a.com or b.com can read
-      var aORb = new Label('https://a.com').or('https://b.com');
+      var aORb = new <a interface>Label</a>("https://a.com").or("https://b.com");
       </code></pre>
       Examples comparing the above confidentiality labels.
       <pre><code>
       // a.com data is more sensitive than public data:
-      a.<a method for="Label">subsumes</a>(empty) === true;
+      a.subsumes(empty) === true;
       b.subsumes(empty) === true;
 
       // Data that is sensitive to a.com and b.com is more sensitive
@@ -595,7 +653,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   </section>
 
   <section>
-    <h3 id="privileges">Privileges</h3>
+    <h3 id="privileges">Privilege Interface</h3>
 
     Each <a>privilege</a> is represented by a <a
     interface>Privilege</a> object, the interface of which is
@@ -616,7 +674,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         Label asLabel();
 
         Privilege combine(Privilege other);
-        [Throws] Privilege mint(Label label);
+        [Throws] Privilege delegate(Label label);
       };
     </pre>
     <h4>Constructors</h4>
@@ -664,7 +722,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
       3. Return <code><var>linternal</var>.<a method for="Label/and(other)">and</a>(<var>lother</var>)</code>.
       </dd>
-      <dt><dfn method title="mint(label)">mint(Label label)</dfn></dt>
+      <dt><dfn method title="delegate(label)">delegate(Label label)</dfn></dt>
       <dd>
       MUST return a new <a interface>Privilege</a> whose <a>internal
       privilege label</a> is <a>equivalent</a> to a <a>label</a>
@@ -683,13 +741,14 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
     <div class="note">
       Note, the <a interface>Privilege</a> constructors and
-      <a>mint()</a> provide a way creating or <em>minting</em>
-      privileges; the context code must still take <a>ownership</a> of
-      a privilege or set the <a>current privilege</a> to it, for the
-      privilege to be used (to bypass label restrictions).
+      <a>delegate()</a> provide a way creating privileges.  Context
+      code must still take <a>ownership</a> of a privilege or set the
+      <a>current privilege</a> to it, for the privilege to be used (to
+      bypass label restrictions).
     </div>
 
     <div class="example">
+      TODO: drop priv
       <pre><code>
         COWL.privilege = new <a>Privilege</a>()
       </code></pre>
@@ -702,16 +761,16 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       entity other than the parent context.
       <pre><code>
         // Create new fresh privilege: 
-        var priv = new <a>FreshPrivilege</a>()
+        var priv = new <a>FreshPrivilege()</a>;
 
-        // Take ownership of privilege:
+        // Take <a>ownership</a> of the fresh privilege:
         COWL.privilege = COWL.privilege.combine(priv);
 
-        // Associate the unique label with password:
+        // Associate the unique label with the password:
         var labeldPassword = new <a interface>LabeledObject</a>(password, {confidentiality: priv.asLabel()});
 
         // Send the labeled password to the checker iframe:
-        checker.postMessage(labeledPassword, 'https://untrusted.com');
+        checker.postMessage(labeledPassword, "https://untrusted.com");
       </code></pre>
       Once the <code>https://untrusted.com</code> context reads the
       password is will be <a>tainted</a> by the unique, <a>internal
@@ -720,6 +779,39 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       parts of <code>https://example.com</code>. Indeed, only the
       owner of <code>priv</code> can disseminate the labeled password
       (result) arbitrarily.
+    </div>
+
+    <div class="example">
+      Suppose <code>https://university.edu</code> wished to isolate
+      different parts of their site, for example, according to the
+      users. The author can drop the privilege of a page
+      <code>https://university.edu/~user1</code>:
+
+      <pre><code lang-js>
+        var uni = new <a interface>Label</a>("https://university.edu");
+        // Create a new label that corresponds to user1's data on university.edu:
+        var user1 = uni.or("cowl://user1"); // Here the cowl:// is an arbitrary <a>scheme</a>
+
+        // Assume: COWL.privilege.asLabel().equals(uni);
+        // Drop the current context privilege to a delegated privilege:
+        COWL.privilege = COWL.privilege.delegate(user1);
+      </code></pre>
+
+      At this point, the context can only arbitrarily disseminate data
+      that is labeled
+      <code><a interface>Label</a>("https://university.edu").or("cowl://user1")</code>;
+      it cannot disseminate data that is
+      sensitive to the university and is thus labeled
+      <code><a interface>Label</a>("https://university.edu")</code>;
+      or another user's data (e.g.,
+      <code><a interface>Label</a>("https://university.edu").or("cowl://user2")</code>).
+
+      Of course, this requires the author to properly label user data
+      (e.g., when sending it to the client).
+
+      Note, sub-domains should be used where possible to ensure
+      isolation. Nevertheless, COWL's labels can serve as another
+      layer of defense.
     </div>
 
   </section>
@@ -798,18 +890,16 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On getting, the user agent MUST return the <a>current
         privilege</a>.
 
-        ISSUE: on setting privs
+        * On setting, the user agent MUST set the <a>current
+        privilege</a> to the set privilege.
+
 
       </dd>
     </dl>
   </section>
 
   <section>
-    <h3 id="object-labels">Labeled Objects</h3>
-
-    <em>This section is not normative.</em>
-
-    <h4 id="object-labels">Labeled Objects Interface</h4>
+    <h3 id="object-labels">Labeled Objects Interface</h3>
     A <a interface>LabeledObject</a> MUST have an internal <dfn>protected
       object</dfn>, a confidentiality <a>label</a>, and an
     integrity <a>label</a>.
@@ -931,7 +1021,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
     <h4>Methods</h4>
 
-    ISSUE describe <code>clone</code>
+    ISSUE: describe <code>clone</code>
 
 
 

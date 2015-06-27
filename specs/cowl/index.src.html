@@ -868,7 +868,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   </section>
 
   <section>
-    <h3 id="context-labels">Labeled Contexts</h3>
+    <h3 id="context-labels">Labeled Context Interface</h3>
 
     ISSUE: describe danger of using privileges implicitly; recommend
     using LabeledObjects everywhere.
@@ -1079,9 +1079,66 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <h4>Methods</h4>
 
     ISSUE: describe <code>clone</code>
+  </section>
 
+  <section>
+    <h3 id="response-header">The <code>COWL</code> HTTP Response Header Field</h3>
 
+    ISSUE: describe response header grammar
+    ISSUE: describe how response header is processes
+    ISSUE: describe how labeled headers and XHR work
 
+    <div class="example">
+      The author of <code>http://a.com</code> may wish to reply to a 
+      request with data that is sensitive to both <code>https://a.com</code> and
+      <a>https://b.com</a>, while simultaneously indicating that
+      it endorses the data:
+      <pre><code>
+      COWL: <a>confidentiality-label</a> [ ['https://a.com'], ['https://b.com'] ];
+            <a>integrity-label</a> [ ['https://a.com'] ];
+      </code></pre>
+    </div>
+    <div class="example">
+      An author may wish to specify that the
+      <code>https://university.edu/~user1</code> page should run with
+      a delegated privilege&mdash;namely, 
+      <code><a interface>Label</a>("https://university.edu/").or("cowl://user1")</code>&mdash;from
+       the start:
+      <pre><code>
+      COWL: <a>privilege</a> [ ['self', 'cowl://user1'] ];
+      </code></pre>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="request-header">The <code>COWL</code> HTTP Request Header Field</h3>
+    The <dfn local-lt="COWL"><code>COWL</code></dfn> header field
+    indicates that a particular request was sent from a context that
+    had <a>confinement mode</a> enabled. Its value contains the
+    stringyfied context's <a>current confidentiality label</a>,
+    <a>current integrity label</a>, and <a>current privilege</a>.
+
+    ISSUE: describe request header grammar
+
+    <div class="example">
+      Request header from a <code>http://a.com</code> context that has
+      read data sensitive to <code>http://b.com</code>.
+      <pre><code>
+      COWL: <a>confidentiality-label</a> [ ['https://b.com'] ];
+            <a>integrity-label</a> [ [] ];
+            <a>privilege</a> [ ['https://a.com'] ];
+      </code></pre>
+    </div>
+    <div class="example">
+      Request header from a public, untrustworthy
+      <code>http://university.edu</code> context that owns a
+      delegated privilege:
+      <pre><code>
+      COWL: <a>confidentiality-label</a> [ [] ];
+            <a>integrity-label</a> [ [] ];
+            <a>privilege</a> [ ['http://university.edu', 'cowl://user1'] ];
+      </code></pre>
+    </div>
   </section>
 
 </section>

@@ -203,7 +203,7 @@ privilege-separated, compartmentalized applications.</p>
         <li><a href="#constructors0"><span class="secno">3.2.1</span> <span class="content">Constructors</span></a>
         <li><a href="#methods0"><span class="secno">3.2.2</span> <span class="content">Methods</span></a>
        </ul>
-      <li><a href="#context-labels"><span class="secno">3.3</span> <span class="content">Labeled Contexts</span></a>
+      <li><a href="#context-labels"><span class="secno">3.3</span> <span class="content">Labeled Context Interface</span></a>
        <ul class="toc">
         <li><a href="#attributes"><span class="secno">3.3.1</span> <span class="content">Attributes</span></a>
        </ul>
@@ -213,6 +213,8 @@ privilege-separated, compartmentalized applications.</p>
         <li><a href="#attributes0"><span class="secno">3.4.2</span> <span class="content">Attributes</span></a>
         <li><a href="#methods1"><span class="secno">3.4.3</span> <span class="content">Methods</span></a>
        </ul>
+      <li><a href="#response-header"><span class="secno">3.5</span> <span class="content">The <code>COWL</code> HTTP Response Header Field</span></a>
+      <li><a href="#request-header"><span class="secno">3.6</span> <span class="content">The <code>COWL</code> HTTP Request Header Field</span></a>
      </ul>
     <li><a href="#algorithms"><span class="secno">4</span> <span class="content">Algorithms</span></a>
      <ul class="toc">
@@ -512,7 +514,7 @@ checker.postMessage(labeledPassword, "https://untrusted.com");
 
       <p>When associated with a <a data-link-type="dfn" href="http://www.w3.org/TR/html5/browsers.html#windows">context</a>, the label restricts the
       origins that the context can communicate with, as detailed in
-      <a href="#context-labels">§3.3 Labeled Contexts</a>.</p>
+      <a href="#context-labels">§3.3 Labeled Context Interface</a>.</p>
       
 
       
@@ -615,7 +617,7 @@ object was not tampered by <code>https://b.com</code>.</p>
      <li>
       The <dfn data-dfn-type="dfn" data-noexport="" id="current-confidentiality-label">current confidentiality label<a class="self-link" href="#current-confidentiality-label"></a></dfn> is the
       confidentiality label associated with the current context.
-      <a href="#context-labels">§3.3 Labeled Contexts</a> specifies how labels are associated with
+      <a href="#context-labels">§3.3 Labeled Context Interface</a> specifies how labels are associated with
       contexts.
     
      
@@ -623,7 +625,7 @@ object was not tampered by <code>https://b.com</code>.</p>
      <li>
       The <dfn data-dfn-type="dfn" data-noexport="" id="current-integrity-label">current integrity label<a class="self-link" href="#current-integrity-label"></a></dfn> is the
       integrity label associated with the current context.
-      <a href="#context-labels">§3.3 Labeled Contexts</a> specifies how labels are associated with
+      <a href="#context-labels">§3.3 Labeled Context Interface</a> specifies how labels are associated with
       contexts.
     
      
@@ -742,7 +744,7 @@ object was not tampered by <code>https://b.com</code>.</p>
 
       <p class="note" role="note">Note, <a data-link-type="dfn" href="http://www.w3.org/TR/html5/browsers.html#windows">browsing contexts</a> have a <a data-link-type="dfn" href="#current-privilege">current privilege</a>
       that, by default, corresponds to the origin of the context, as
-      described in <a href="#context-labels">§3.3 Labeled Contexts</a>. Authors can set the <a data-link-type="dfn" href="#current-privilege">current
+      described in <a href="#context-labels">§3.3 Labeled Context Interface</a>. Authors can set the <a data-link-type="dfn" href="#current-privilege">current
       privilege</a> of a context to ensure that it runs with <em>least
       privilege</em>.</p>
       
@@ -752,7 +754,7 @@ object was not tampered by <code>https://b.com</code>.</p>
     
      <li>
       The <dfn data-dfn-type="dfn" data-noexport="" id="current-privilege">current privilege<a class="self-link" href="#current-privilege"></a></dfn> is the privilege associated
-      with the current context. <a href="#context-labels">§3.3 Labeled Contexts</a> specifies how
+      with the current context. <a href="#context-labels">§3.3 Labeled Context Interface</a> specifies how
       privileges are associated with contexts.
     
      
@@ -1362,7 +1364,7 @@ COWL.privilege = COWL.privilege.delegate(user1);
   
     <section>
     
-     <h3 class="heading settled" data-level="3.3" id="context-labels"><span class="secno">3.3. </span><span class="content">Labeled Contexts</span><a class="self-link" href="#context-labels"></a></h3>
+     <h3 class="heading settled" data-level="3.3" id="context-labels"><span class="secno">3.3. </span><span class="content">Labeled Context Interface</span><a class="self-link" href="#context-labels"></a></h3>
      
 
 
@@ -1730,9 +1732,94 @@ influenced the computation.</p>
 
      <p class="issue" id="issue-8d80fc2e"><a class="self-link" href="#issue-8d80fc2e"></a> describe <code>clone</code></p>
      
+  
+    </section>
+
+  
+    <section>
+    
+     <h3 class="heading settled" data-level="3.5" id="response-header"><span class="secno">3.5. </span><span class="content">The <code>COWL</code> HTTP Response Header Field</span><a class="self-link" href="#response-header"></a></h3>
+     
 
 
+     <p class="issue" id="issue-4fe82c66"><a class="self-link" href="#issue-4fe82c66"></a> describe response header grammar
+    ISSUE: describe how response header is processes
+    ISSUE: describe how labeled headers and XHR work</p>
+     
 
+    
+     <div class="example" id="example-cccc17f6"><a class="self-link" href="#example-cccc17f6"></a>
+      The author of <code>http://a.com</code> may wish to reply to a 
+      request with data that is sensitive to both <code>https://a.com</code> and
+      <a data-link-type="dfn">https://b.com</a>, while simultaneously indicating that
+      it endorses the data:
+      
+      <pre><code>COWL: <a data-link-type="dfn">confidentiality-label</a> [ ['https://a.com'], ['https://b.com'] ];
+      <a data-link-type="dfn">integrity-label</a> [ ['https://a.com'] ];
+</code></pre>
+      
+    
+     </div>
+     
+    
+     <div class="example" id="example-af83b2df"><a class="self-link" href="#example-af83b2df"></a>
+      An author may wish to specify that the
+      <code>https://university.edu/~user1</code> page should run with
+      a delegated privilege—namely, 
+      <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>("https://university.edu/").or("cowl://user1")</code>—from
+       the start:
+      
+      <pre><code>COWL: <a data-link-type="dfn" href="#privilege">privilege</a> [ ['self', 'cowl://user1'] ];
+</code></pre>
+      
+    
+     </div>
+     
+  
+    </section>
+
+  
+    <section>
+    
+     <h3 class="heading settled" data-level="3.6" id="request-header"><span class="secno">3.6. </span><span class="content">The <code>COWL</code> HTTP Request Header Field</span><a class="self-link" href="#request-header"></a></h3>
+     
+    The <dfn data-dfn-type="dfn" data-local-lt="COWL" data-noexport="" id="cowl0"><code>COWL</code><a class="self-link" href="#cowl0"></a></dfn> header field
+    indicates that a particular request was sent from a context that
+    had <a data-link-type="dfn">confinement mode</a> enabled. Its value contains the
+    stringyfied context’s <a data-link-type="dfn" href="#current-confidentiality-label">current confidentiality label</a>,
+    <a data-link-type="dfn" href="#current-integrity-label">current integrity label</a>, and <a data-link-type="dfn" href="#current-privilege">current privilege</a>.
+
+
+     <p class="issue" id="issue-1d09bad5"><a class="self-link" href="#issue-1d09bad5"></a> describe request header grammar</p>
+     
+
+    
+     <div class="example" id="example-33401665"><a class="self-link" href="#example-33401665"></a>
+      Request header from a <code>http://a.com</code> context that has
+      read data sensitive to <code>http://b.com</code>.
+      
+      <pre><code>COWL: <a data-link-type="dfn">confidentiality-label</a> [ ['https://b.com'] ];
+      <a data-link-type="dfn">integrity-label</a> [ [] ];
+      <a data-link-type="dfn" href="#privilege">privilege</a> [ ['https://a.com'] ];
+</code></pre>
+      
+    
+     </div>
+     
+    
+     <div class="example" id="example-7e38bf47"><a class="self-link" href="#example-7e38bf47"></a>
+      Request header from a public, untrustworthy
+      <code>http://university.edu</code> context that owns a
+      delegated privilege:
+      
+      <pre><code>COWL: <a data-link-type="dfn">confidentiality-label</a> [ [] ];
+      <a data-link-type="dfn">integrity-label</a> [ [] ];
+      <a data-link-type="dfn" href="#privilege">privilege</a> [ ['http://university.edu', 'cowl://user1'] ];
+</code></pre>
+      
+    
+     </div>
+     
   
     </section>
 
@@ -1920,7 +2007,12 @@ influenced the computation.</p>
    <li>conformant server, <a href="#conformant-server">Unnumbered section</a>
    <li>conformant user agent, <a href="#conformant-user-agent">Unnumbered section</a>
    <li>context tainting, <a href="#context-tainting">4.4</a>
-   <li>COWL, <a href="#cowl">3.3</a>
+   <li>COWL
+    <ul>
+     <li>(interface), <a href="#cowl">3.3</a>
+     <li>definition of, <a href="#cowl0">3.6</a>
+     <li>definition of, <a href="#cowl0">3.6</a>
+    </ul>
    <li>current confidentiality label, <a href="#current-confidentiality-label">2.1</a>
    <li>current integrity label, <a href="#current-integrity-label">2.1</a>
    <li>current privilege, <a href="#current-privilege">2.2</a>
@@ -2116,6 +2208,10 @@ interface <a href="#labeledobject">LabeledObject</a> {
     using LabeledObjects everywhere.<a href="#issue-54662070"> ↵ </a></div>
    <div class="issue"> for discussion: should privileges be used explicitly?<a href="#issue-5e328eec"> ↵ </a></div>
    <div class="issue"> describe <code>clone</code><a href="#issue-8d80fc2e"> ↵ </a></div>
+   <div class="issue"> describe response header grammar
+    ISSUE: describe how response header is processes
+    ISSUE: describe how labeled headers and XHR work<a href="#issue-4fe82c66"> ↵ </a></div>
+   <div class="issue"> describe request header grammar<a href="#issue-1d09bad5"> ↵ </a></div>
    <div class="issue"> describe the reduction algorithm<a href="#issue-a82506bb"> ↵ </a></div>
    <div class="issue"> describe the subsumes algorithm<a href="#issue-3dc7e411"> ↵ </a></div>
    <div class="issue"> describe downgrade<a href="#issue-c98f93fc"> ↵ </a></div>

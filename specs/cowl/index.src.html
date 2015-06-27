@@ -389,24 +389,29 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         label. For example, it restricts the context from
         communicating with a context labeled <code><a
            interface>Label</a>("https://b.com")</code> context, since doing
-       so would potentially leak <code>https://a.com</code> data to 
-       <code>https://b.com</code>. It similarly cannot communicate with
-       <code>https://a.com</code>
-
-       However, if the context's <a>current privilege</a> corresponds
-       to <code><a interface>Label</a>("https://a.com")</code>, then it
-       would be able to bypass the restriction imposed by this label.
-       In particular, the context would be able to communicate with
-       <code>https://b.com</code>&mdash;the privilege confers the right
-       to declassify <code>https://a.com</code> data to
-       <code>https://b.com</code>&mdash;since the <a>effective
-       confidentiality label</a> is
-       <code><a interface>Label</a>("https://b.com")</code>.
-
-       Note, the privilege cannot bypass any label restrictions. For
-       example, it does not allow the context to communicate with
-       <code>https://a.com</code> since doing so would potentially leak
-       <code>https://b.com</code> data.
+        so would potentially leak <code>https://a.com</code> data to 
+        <code>https://b.com</code>. It similarly cannot communicate with
+        <code>https://a.com</code>.
+        
+        However, if the context's <a>current privilege</a> corresponds
+        to <code><a interface>Label</a>("https://a.com")</code>, then it
+        would be able to bypass the restriction imposed by this label.
+        In particular, the context would be able to communicate with
+        <code>https://b.com</code>&mdash;the privilege confers the right
+        to declassify <code>https://a.com</code> data to
+        <code>https://b.com</code>&mdash;since the <a>effective
+        confidentiality label</a> is
+        <code><a interface>Label</a>("https://b.com")</code>.
+        
+        Note, the context is responsible for ensuring that
+        <code>http://a.com</code> data is not accidentally leaked.
+        Hence, when using cross-document messaging authors should
+        always use <a interface>LabeledObject</a>s.
+        
+        Note, the privilege cannot bypass any label restrictions. For
+        example, it does not allow the context to communicate with
+        <code>https://a.com</code> since doing so would potentially leak
+        <code>https://b.com</code> data.
       </div>
 
       Privileges can also be used to bypass integrity restrictions
@@ -430,22 +435,25 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         <code>https://a.com</code> data&mdash;the computation was
         potentially influence by <code>https://b.com</code>.
 
-       However, if the context's <a>current privilege</a> corresponds
-       to <code><a interface>Label</a>("https://a.com")</code>, then it
-       would be able to bypass the restriction imposed by this label.
-       In particular, the context would be able to communicate with
-       the other context since the privilege confers it the right
-       to speak on behalf of <code>https://a.com</code>. Indeed, its
-       <a>effective integrity label</a> is <code><a
-       interface>Label</a>("https://b.com")</code>. (Of course, the
-       context is responsible for ensuring that
-       <code>http://b.com</code> data did not influence it's behaviour
-       in an inadvertent way.)
-
-       Note, the privilege cannot bypass any label restrictions. For
-       example, it does not allow the context to communicate with
-       a context whose integrity label is
-       <code><a interface>Label</a>(https://b.com</code>.
+        However, if the context's <a>current privilege</a> corresponds
+        to <code><a interface>Label</a>("https://a.com")</code>, then it
+        would be able to bypass the restriction imposed by this label.
+        In particular, the context would be able to communicate with
+        the other context since the privilege confers it the right
+        to speak on behalf of <code>https://a.com</code>. Indeed, its
+        <a>effective integrity label</a> is <code><a
+        interface>Label</a>("https://b.com")</code>. 
+  
+        Note, the receiving context is responsible for ensuring
+        that <code>http://b.com</code> data did not influence the
+        sender's behaviour in an inadvertent way.  Hence, when using
+        cross-document messaging authors should always demand the use
+        <a interface>LabeledObject</a>s.
+        
+        Note, the privilege cannot bypass any label restrictions. For
+        example, it does not allow the context to communicate with
+        a context whose integrity label is
+        <code><a interface>Label</a>(https://b.com</code>.
       </div>
 
       Note, <a>browsing contexts</a> have a <a>current privilege</a>
@@ -609,43 +617,61 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     ISSUE: describe the <a>toJSON()</a> and <a>fromJSON()</a>
 
     <div class="example">
-      Examples creating confidentiality labels.
+      Example labels. Intuition for each label's semantics is given in
+      the context of it being used as a confidentiality label (C) and
+      integrity label (I).
       <pre><code>
-      // Create empty label. This corresponds to public data.
+      // Create an empty label.
+      // C: This corresponds to public data.
+      // I: This corresponds to non-endorsed/untrustworthy data.
       var empty = new <a interface>Label</a>();
 
-      // Create a label that may used to protect data sensitive to a.com
+      // C: Data confidential to a.com.
+      // I: Data endorsed/trusted by a.com.
       var a = new <a interface>Label</a>("https://a.com");
 
-      // Create a label that may used to protect data sensitive to b.com
+      // C: Data confidential to b.com.
+      // I: Data endorsed/trusted by b.com.
       var a = new <a interface>Label</a>("https://b.com");
 
-      // Create a label that may used to protect data that is
-      // sensitive to both a.com and b.com
+      // C: Data confidential to both a.com and b.com
+      // I: Data endorsed/trusted by a.com and b.com.
       var aANDb = new <a interface>Label</a>("https://a.com").and("https://b.com");
 
-      // Create a label that may used to protect data that either
-      // a.com or b.com can read
+      // C: Data confidential to either a.com or b.com.
+      // I: Data endorsed/trusted by either a.com or b.com.
       var aORb = new <a interface>Label</a>("https://a.com").or("https://b.com");
       </code></pre>
-      Examples comparing the above confidentiality labels.
+      Examples of label comparisons with intuition for the semantics.
       <pre><code>
-      // a.com data is more sensitive than public data:
+      // C: a.com data is more sensitive than public data.
+      // I: data endorsed by a.com is more trustworthy than non-endorsed/untrustworthy data.
       a.subsumes(empty) === true;
       b.subsumes(empty) === true;
 
-      // Data that is sensitive to a.com and b.com is more sensitive
-      // than data that is only sensitive to a.com
+      // C: Data that is confidential to a.com and b.com is more
+      // confidential than data that is only sensitive to a.com.
+      //
+      // I: Data that is endorsed/trusted by both a.com and b.com is
+      // more trustworthy than data endorsed only by a.com
       aANDb.subsumes(a) === true;
       aANDb.subsumes(b) === true;
 
-      // Data that that is sensitive to a.com is not comparable to
-      // data that is sensitive to b.com
+      // C: Data that that is confidential to a.com is not comparable to
+      // data that is confidential to b.com
+      //
+      // I: Data that that is endorsed by a.com is not comparable to
+      // data that is endorsed to b.com
       a.subsumes(b) === false;
       b.subsumes(a) === false;
 
-      // Data that is sensitive to either a.com or b.com is less
-      // sensitive than data that is sensitive to a.com alone
+      // C: Data that is confidential to a.com is more confidential than data that is confidential
+      // to either a.com or b.com. Alternative intuition: data that can be read by a.com or b.com
+      // can necessarily be read by an entity that can read a.com data alone.
+      //
+      // I: Data that is endorsed by a.com is more trustworthy than data that is endorsed/trusted
+      // by either a.com or b.com. Alternative intuition: an entity that trusts data that is
+      // endorsed by either a.com or b.com necessarily trusts data endorsed by a.com alone.
       a.subsumes(aOrb) === true;
       b.subsumes(aOrb) === true;
       </code></pre>
@@ -748,10 +774,35 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     </div>
 
     <div class="example">
-      TODO: drop priv
+      To be backwards-compatible with the Same-Origin Policy, COWL
+      grants each <a>browsing context</a> a <a>default privilege</a>
+      that corresponds to their origin. For example, a page on
+      <code>https://example.com</code> has a privilege whose <a>internal
+      privilege label</a> is
+      <code><a interface>Label</a>("https://example.com")</code>.
+
+      As a result, reading data that is sensitive to
+      <code><a interface>Label</a>("https://example.com")</code> does
+      not confine the context. For example, reading a
+      <a interface>LabeledObject</a> whose confidentiality label is
+      <code><a interface>Label</a>("https://example.com")</code> does
+      not restrict the context from communicating&mdash;and thus
+      accidentally leak that object's contents&mdash;to another origin.
+      To prevent such bugs, the author can drop the privilege by
+      setting the <a>current privilege</a> to an <a>empty
+      privilege</a>:
       <pre><code>
-        COWL.privilege = new <a>Privilege</a>()
+        // Save privilege in case we need it later:
+        var __savedPriv = COWL.privilege;
+
+        // Drop privilege:
+        COWL.privilege = new <a>Privilege</a>();
       </code></pre>
+
+      After this point, if the context reads data with a
+      <code><a interface>Label</a>("https://example.com")</code>
+      confidentiality label, COWL will limit it ability to communicate
+      with <code>https://example.com")</code>.
     </div>
 
     <div class="example">
@@ -818,6 +869,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
     <h3 id="context-labels">Labeled Contexts</h3>
+
+    ISSUE: describe danger of using privileges implicitly; recommend
+    using LabeledObjects everywhere.
+
+    ISSUE: for discussion: should privileges be used explicitly?
+
 
     <pre class="idl">
       interface COWL {
@@ -917,7 +974,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
       [GetterThrows] readonly attribute object protectedObject;
 
-      [Throws] LabeledObject clone(Label confidentiality, Label integrity);
+      [Throws] LabeledObject clone(CILabel newLabels);
     };
     </pre>
     <h4>Constructors</h4>

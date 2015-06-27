@@ -187,7 +187,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   sensitive data, such that it can only communicate according to the
   author-specified policy.
 
-  <div class="example">
+  <div id="example-checker" class="example">
     Consider using a third-party password strength checker provided by
     <code>https://untrusted.com</code>, loaded in the form of an
     iframe. To protect the confidentiality of the password, the
@@ -367,32 +367,32 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       its underlying label subsumes.
 
       <div class="example">
-        Consider an <code>http://a.com</code> contexts whose
+        Consider an <code>https://a.com</code> contexts whose
         <a>current confidentiality label</a> is <code><a
-            interface>Label</a>('http://a.com').and('http://b.com')</code>.
+            interface>Label</a>('https://a.com').and('https://b.com')</code>.
         This label confines the context to only communicating with
         entities whose labels are at least as restricting as this
         label. For example, it restricts the context from
         communicating with a context labeled <code><a
-           interface>Label</a>('http://b.com')</code> context, since doing
-       so would potentially leak <code>http://a.com</code> data to 
-       <code>http://b.com</code>. It similarly cannot communicate with
-       <code>http://a.com</code>
+           interface>Label</a>('https://b.com')</code> context, since doing
+       so would potentially leak <code>https://a.com</code> data to 
+       <code>https://b.com</code>. It similarly cannot communicate with
+       <code>https://a.com</code>
 
        However, if the context's <a>current privilege</a> corresponds
-       to <code><a interface>Label</a>('http://a.com')</code>, then it
+       to <code><a interface>Label</a>('https://a.com')</code>, then it
        would be able to bypass the restriction imposed by this label.
        In particular, the context would be able to communicate with
-       <code>http://b.com</code>&mdash;the privilege confers the right
-       to declassify <code>http://a.com</code> data to
-       <code>http://b.com</code>&mdash;since the <a>effective
+       <code>https://b.com</code>&mdash;the privilege confers the right
+       to declassify <code>https://a.com</code> data to
+       <code>https://b.com</code>&mdash;since the <a>effective
        confidentiality label</a> is
-       <code><a interface>Label</a>('http://b.com')</code>.
+       <code><a interface>Label</a>('https://b.com')</code>.
 
        Note, the privilege cannot bypass any label restrictions. For
        example, it does not allow the context to communicate with
-       <code>http://a.com</code> since doing so would potentially leak
-       <code>http://b.com</code> data.
+       <code>https://a.com</code> since doing so would potentially leak
+       <code>https://b.com</code> data.
       </div>
 
       ISSUE: describe integrity and privs
@@ -413,6 +413,13 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       returned by the <a>label downgrade</a> algorithm when invoked
       with the <a>current integrity label</a> and <a>current
       privilege</a>.
+    </li>
+    <li>
+      Code can take <em>ownership</em> of a <a>privilege</a>
+      <var>priv</var> by
+      setting the <a>current privilege</a> to the privilege produced
+      by <a>combining</a> the <a>current privilege</a> and
+      <var>priv</var>.
     </li>
   </ol>
 </section>
@@ -482,16 +489,16 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <dl dfn-for="Label">
       <dt><dfn method title="equals(other)">equals(Label other)</dfn></dt>
       <dd>
-        MUST return <code>true</code> if the <a>Label</a> on which the method
-        has been called is <a>equivalent</a> to the <a argument
-        for="Label/equals(other)">other</a>
+        MUST return <code>true</code> if the <a interface>Label</a> on
+        which the method has been called is <a>equivalent</a> to the
+        <a argument for="Label/equals(other)">other</a>
         parameter; otherwise it MUST return <code>false</code>
       </dd>
       <dt><dfn method title="subsumes(other)">subsumes(Label other)</dfn></dt>
       <dd>
-        MUST return <code>true</code> if the <a>Label</a> on which the method
-        has been called <a>subsumes</a> the <a argument
-        for="Label/subsumes(other)">other</a>
+        MUST return <code>true</code> if the <a interface>Label</a> on
+        which the method has been called <a>subsumes</a> the
+        <a argument for="Label/subsumes(other)">other</a>
         parameter; otherwise it MUST return <code>false</code>
       </dd>
       <dt><dfn method title="and(other)">and((Label or DOMString) other)</dfn></dt>
@@ -511,10 +518,10 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
           2. Else, re-throw the exception and terminate this algorithm.
 
-        2. Return a new <a>Label</a>, in <a>normal form</a>, which is
+        2. Return a new <a interface>Label</a>, in <a>normal form</a>, which is
         <a>equivalent</a> to adding <var>O</var>'s <a>label set</a> to
-        the <a>label set</a> of the <a>Label</a> on which the method
-        was invoked.
+        the <a>label set</a> of the <a interface>Label</a> on which
+        the method was invoked.
       </dd>
       <dt><dfn method title="_or(other)">_or((Label or DOMString) other)</dfn></dt>
       <dd>
@@ -533,11 +540,11 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
           2. Else, re-throw the exception and terminate this algorithm.
 
-        2. Return a new <a>Label</a>, in <a>normal form</a>, which is
-        <a>equivalent</a> to adding each element of each
+        2. Return a new <a interface>Label</a>, in <a>normal form</a>,
+        which is <a>equivalent</a> to adding each element of each
         <a>disjunction set</a> of <var>O</var>'s <a>label set</a> to
         each <a>disjunction set</a> of the <a>label set</a> of the
-        <a>Label</a> on which the method was invoked.
+        <a interface>Label</a> on which the method was called.
       </dd>
     </dl>
 
@@ -589,22 +596,132 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
     <h3 id="privileges">Privileges</h3>
+
+    Each <a>privilege</a> is represented by a <a
+    interface>Privilege</a> object, the interface of which is
+    defined in this section.
+
+    A <a interface>Privilege</a> MUST have an <dfn>internal privilege
+    label</dfn>.
+
+    The <dfn>combination</dfn> of privileges <var>A</var> and
+    <var>B</var> is a privilege produced by invoking the
+    <a>combine()</a> method on <var>A</var> (respectively,
+    <var>B</var>) with <var>B</var> (respectively, <var>A</var>) as an
+    argument.
+
     <pre class="idl">
       [Constructor, NamedConstructor=FreshPrivilege]
       interface Privilege {
-        boolean equals(Privilege other);
-        boolean subsumes(Privilege other);
-
         Label asLabel();
 
         Privilege combine(Privilege other);
         [Throws] Privilege mint(Label label);
       };
-
-      partial interface Label {
-        boolean subsumes(Label other, Privilege privs);
-      };
     </pre>
+    <h4>Constructors</h4>
+    <dl dfn-for="Privilege">
+      <dt><dfn constructor>Privilege()</dfn></dt>
+      <dd>
+      When invoking the <a>Privilege()</a> constructor, the user
+      agent MUST return a new <a interface>Privilege</a> that has an
+      <a>internal privilege label</a> set to
+      <code><a>Label()</a></code>.
+      </dd>
+      <dt><dfn constructor>FreshPrivilege()</dfn></dt>
+      <dd>
+      When invoking the <a>FreshPrivilege()</a> constructor, the user
+      agent MUST use an algorithm equivalent to the following:
+
+      1. Let <var>unique Label</var> be the label produced by invoking the
+      <a>Label(other)</a> constructor with a <a>globally unique
+        identifier</a>.
+
+      2. Return a new <a interface>Privilege</a> that has an
+      <a>internal privilege label</a> set to <var>unique Label</var>.
+      </dd>
+    </dl>
+
+    <h4>Methods</h4>
+    <dl dfn-for="equals">
+      <dt><dfn method title="asLabel()">asLabel()</dfn></dt>
+      <dd>
+      MUST return the <a>internal privilege label</a> of the
+      <a interface>Privilege</a> on which the method has been called.
+      </dd>
+      <dt><dfn method title="combine(other)">combine(Privilege other)</dfn></dt>
+      <dd>
+      MUST return a new <a interface>Privilege</a> whose <a>internal
+      privilege label</a> is <a>equivalent</a> to a <a>label</a>
+      created according to an algorithm equivalent to the following:
+      
+      1. Let <var>lintrnal</var> be the
+      <a>internal privilege label</a> of the 
+      <a interface>Privilege</a> on which the method has been called.
+
+      2. Let <var>lother</var> be the <a>internal privilege label</a> of
+      the <a argument for="Privilege/combine(other)">other</a> argument.
+
+      3. Return <code><var>linternal</var>.<a method for="Label/and(other)">and</a>(<var>lother</var>)</code>.
+      </dd>
+      <dt><dfn method title="mint(label)">mint(Label label)</dfn></dt>
+      <dd>
+      MUST return a new <a interface>Privilege</a> whose <a>internal
+      privilege label</a> is <a>equivalent</a> to a <a>label</a>
+      created according to an algorithm equivalent to the following:
+      
+        1. Let <var>linternal</var> be the
+        <a>internal privilege label</a> of the 
+        <a interface>Privilege</a> on which the method has been called.
+
+        2. Let <var>lother</var> be the <a>internal privilege label</a> of
+        the <a argument for="Privilege/combine(other)">other</a> argument.
+
+        3. Return <code><var>linternal</var>.<a method for="Label/and(other)">and</a>(<var>lother</var>)</code>.
+      </dd>
+    </dl>
+
+    <div class="note">
+      Note, the <a interface>Privilege</a> constructors and
+      <a>mint()</a> provide a way creating or <em>minting</em>
+      privileges; the context code must still take <a>ownership</a> of
+      a privilege or set the <a>current privilege</a> to it, for the
+      privilege to be used (to bypass label restrictions).
+    </div>
+
+    <div class="example">
+      <pre><code>
+        COWL.privilege = new <a>Privilege</a>()
+      </code></pre>
+    </div>
+
+    <div class="example">
+      Consider a modification to <a href="#example-checker">
+        password-checker example</a> that uses <a>FreshPrivilege()</a>s
+      to ensure that the untrusted checker cannot communicate with any
+      entity other than the parent context.
+      <pre><code>
+        // Create new fresh privilege: 
+        var priv = new <a>FreshPrivilege</a>()
+
+        // Take ownership of privilege:
+        COWL.privilege = COWL.privilege.combine(priv);
+
+        // Associate the unique label with password:
+        var labeldPassword = new <a interface>LabeledObject</a>(password, {confidentiality: priv.asLabel()});
+
+        // Send the labeled password to the checker iframe:
+        checker.postMessage(labeledPassword, 'https://untrusted.com');
+      </code></pre>
+      Once the <code>https://untrusted.com</code> context reads the
+      password is will be <a>tainted</a> by the unique, <a>internal
+      privilege label</a> of <code>priv</code>; the unique origin
+      ensures that it cannot send the password to, for example, public
+      parts of <code>https://example.com</code>. Indeed, only the
+      owner of <code>priv</code> can disseminate the labeled password
+      (result) arbitrarily.
+    </div>
+
   </section>
 
   <section>

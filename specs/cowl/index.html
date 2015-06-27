@@ -199,6 +199,10 @@ privilege-separated, compartmentalized applications.</p>
         <li><a href="#methods"><span class="secno">3.1.2</span> <span class="content">Methods</span></a>
        </ul>
       <li><a href="#privileges0"><span class="secno">3.2</span> <span class="content">Privileges</span></a>
+       <ul class="toc">
+        <li><a href="#constructors0"><span class="secno">3.2.1</span> <span class="content">Constructors</span></a>
+        <li><a href="#methods0"><span class="secno">3.2.2</span> <span class="content">Methods</span></a>
+       </ul>
       <li><a href="#context-labels"><span class="secno">3.3</span> <span class="content">Labeled Contexts</span></a>
        <ul class="toc">
         <li><a href="#attributes"><span class="secno">3.3.1</span> <span class="content">Attributes</span></a>
@@ -206,9 +210,9 @@ privilege-separated, compartmentalized applications.</p>
       <li><a href="#object-labels"><span class="secno">3.4</span> <span class="content">Labeled Objects</span></a>
        <ul class="toc">
         <li><a href="#object-labels0"><span class="secno">3.4.1</span> <span class="content">Labeled Objects Interface</span></a>
-        <li><a href="#constructors0"><span class="secno">3.4.2</span> <span class="content">Constructors</span></a>
+        <li><a href="#constructors1"><span class="secno">3.4.2</span> <span class="content">Constructors</span></a>
         <li><a href="#attributes0"><span class="secno">3.4.3</span> <span class="content">Attributes</span></a>
-        <li><a href="#methods0"><span class="secno">3.4.4</span> <span class="content">Methods</span></a>
+        <li><a href="#methods1"><span class="secno">3.4.4</span> <span class="content">Methods</span></a>
        </ul>
      </ul>
     <li><a href="#algorithms"><span class="secno">4</span> <span class="content">Algorithms</span></a>
@@ -380,7 +384,7 @@ which have the same privileges as content.</p>
      
 
   
-     <div class="example" id="example-86f3063f"><a class="self-link" href="#example-86f3063f"></a>
+     <div class="example" id="example-checker"><a class="self-link" href="#example-checker"></a>
     Consider using a third-party password strength checker provided by
     <code>https://untrusted.com</code>, loaded in the form of an
     iframe. To protect the confidentiality of the password, the
@@ -637,34 +641,34 @@ object was not tampered by <code>https://b.com</code>.</p>
       
 
       
-      <div class="example" id="example-175881a8"><a class="self-link" href="#example-175881a8"></a>
-        Consider an <code>http://a.com</code> contexts whose
-        <a data-link-type="dfn" href="#current-confidentiality-label">current confidentiality label</a> is <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('http://a.com').and('http://b.com')</code>.
+      <div class="example" id="example-391733de"><a class="self-link" href="#example-391733de"></a>
+        Consider an <code>https://a.com</code> contexts whose
+        <a data-link-type="dfn" href="#current-confidentiality-label">current confidentiality label</a> is <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('https://a.com').and('https://b.com')</code>.
         This label confines the context to only communicating with
         entities whose labels are at least as restricting as this
         label. For example, it restricts the context from
-        communicating with a context labeled <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('http://b.com')</code> context, since doing
-       so would potentially leak <code>http://a.com</code> data to 
-       <code>http://b.com</code>. It similarly cannot communicate with
-       <code>http://a.com</code>
+        communicating with a context labeled <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('https://b.com')</code> context, since doing
+       so would potentially leak <code>https://a.com</code> data to 
+       <code>https://b.com</code>. It similarly cannot communicate with
+       <code>https://a.com</code>
 
 
        <p>However, if the context’s <a data-link-type="dfn" href="#current-privilege">current privilege</a> corresponds
-       to <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('http://a.com')</code>, then it
+       to <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('https://a.com')</code>, then it
        would be able to bypass the restriction imposed by this label.
        In particular, the context would be able to communicate with
-       <code>http://b.com</code>—the privilege confers the right
-       to declassify <code>http://a.com</code> data to
-       <code>http://b.com</code>—since the <a data-link-type="dfn" href="#effective-confidentiality-label">effective
+       <code>https://b.com</code>—the privilege confers the right
+       to declassify <code>https://a.com</code> data to
+       <code>https://b.com</code>—since the <a data-link-type="dfn" href="#effective-confidentiality-label">effective
        confidentiality label</a> is
-       <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('http://b.com')</code>.</p>
+       <code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>('https://b.com')</code>.</p>
        
 
 
        <p class="note" role="note">Note, the privilege cannot bypass any label restrictions. For
        example, it does not allow the context to communicate with
-       <code>http://a.com</code> since doing so would potentially leak
-       <code>http://b.com</code> data.</p>
+       <code>https://a.com</code> since doing so would potentially leak
+       <code>https://b.com</code> data.</p>
        
       
       </div>
@@ -696,6 +700,15 @@ object was not tampered by <code>https://b.com</code>.</p>
       returned by the <a data-link-type="dfn" href="#label-downgrade">label downgrade</a> algorithm when invoked
       with the <a data-link-type="dfn" href="#current-integrity-label">current integrity label</a> and <a data-link-type="dfn" href="#current-privilege">current
       privilege</a>.
+    
+     
+    
+     <li>
+      Code can take <em>ownership</em> of a <a data-link-type="dfn" href="#privilege">privilege</a>
+      <var>priv</var> by
+      setting the <a data-link-type="dfn" href="#current-privilege">current privilege</a> to the privilege produced
+      by <a data-link-type="dfn">combining</a> the <a data-link-type="dfn" href="#current-privilege">current privilege</a> and
+      <var>priv</var>.
     
      
   
@@ -810,8 +823,9 @@ itself MUST contain the <a data-link-type="dfn" href="http://dom.spec.whatwg.org
       
       
       <dd>
-        MUST return <code>true</code> if the <a data-link-type="dfn" href="#label">Label</a> on which the method
-        has been called is <a data-link-type="dfn" href="#equivalent">equivalent</a> to the <a class="idl-code" data-link-type="argument" href="#dom-label-equalsother-other">other</a>
+        MUST return <code>true</code> if the <a class="idl-code" data-link-type="interface" href="#label1">Label</a> on
+        which the method has been called is <a data-link-type="dfn" href="#equivalent">equivalent</a> to the
+        <a class="idl-code" data-link-type="argument" href="#dom-label-equalsother-other">other</a>
         parameter; otherwise it MUST return <code>false</code>
       
       
@@ -820,8 +834,9 @@ itself MUST contain the <a data-link-type="dfn" href="http://dom.spec.whatwg.org
       
       
       <dd>
-        MUST return <code>true</code> if the <a data-link-type="dfn" href="#label">Label</a> on which the method
-        has been called <a data-link-type="dfn" href="#subsumes">subsumes</a> the <a class="idl-code" data-link-type="argument" href="#dom-label-subsumesother-other">other</a>
+        MUST return <code>true</code> if the <a class="idl-code" data-link-type="interface" href="#label1">Label</a> on
+        which the method has been called <a data-link-type="dfn" href="#subsumes">subsumes</a> the
+        <a class="idl-code" data-link-type="argument" href="#dom-label-subsumesother-other">other</a>
         parameter; otherwise it MUST return <code>false</code>
       
       
@@ -861,10 +876,10 @@ constructor did not raise an exception.</p>
          
 
         <li data-md="">
-         <p>Return a new <a data-link-type="dfn" href="#label">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>, which is
+         <p>Return a new <a class="idl-code" data-link-type="interface" href="#label1">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>, which is
 <a data-link-type="dfn" href="#equivalent">equivalent</a> to adding <var>O</var>’s <a data-link-type="dfn" href="#label-set">label set</a> to
-the <a data-link-type="dfn" href="#label-set">label set</a> of the <a data-link-type="dfn" href="#label">Label</a> on which the method
-was invoked.</p>
+the <a data-link-type="dfn" href="#label-set">label set</a> of the <a class="idl-code" data-link-type="interface" href="#label1">Label</a> on which
+the method was invoked.</p>
          
 </ol>
              
@@ -905,11 +920,11 @@ constructor did not raise an exception.</p>
          
 
         <li data-md="">
-         <p>Return a new <a data-link-type="dfn" href="#label">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>, which is
-<a data-link-type="dfn" href="#equivalent">equivalent</a> to adding each element of each
+         <p>Return a new <a class="idl-code" data-link-type="interface" href="#label1">Label</a>, in <a data-link-type="dfn" href="#normal-form">normal form</a>,
+which is <a data-link-type="dfn" href="#equivalent">equivalent</a> to adding each element of each
 <a data-link-type="dfn" href="#disjunction-set">disjunction set</a> of <var>O</var>’s <a data-link-type="dfn" href="#label-set">label set</a> to
 each <a data-link-type="dfn" href="#disjunction-set">disjunction set</a> of the <a data-link-type="dfn" href="#label-set">label set</a> of the
-<a data-link-type="dfn" href="#label">Label</a> on which the method was invoked.</p>
+<a class="idl-code" data-link-type="interface" href="#label1">Label</a> on which the method was called.</p>
          
 </ol>
              
@@ -979,23 +994,207 @@ b.subsumes(aOrb) === true;
     
      <h3 class="heading settled" data-level="3.2" id="privileges0"><span class="secno">3.2. </span><span class="content">Privileges</span><a class="self-link" href="#privileges0"></a></h3>
      
-    
-     <pre class="idl">[<dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="constructor" data-export="" data-lt="Privilege()" id="dom-privilege-privilege">Constructor<a class="self-link" href="#dom-privilege-privilege"></a></dfn>, <dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="constructor" data-export="" data-lt="FreshPrivilege()" id="dom-privilege-freshprivilege">NamedConstructor<a class="self-link" href="#dom-privilege-freshprivilege"></a></dfn>=<a data-link-type="idl-name">FreshPrivilege</a>]
-interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="privilege0">Privilege<a class="self-link" href="#privilege0"></a></dfn> {
-  boolean <dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="method" data-export="" data-lt="equals(other)" id="dom-privilege-equalsother">equals<a class="self-link" href="#dom-privilege-equalsother"></a></dfn>(<a data-link-type="idl-name" href="#privilege0">Privilege</a> <dfn class="idl-code" data-dfn-for="Privilege/equals(other)" data-dfn-type="argument" data-export="" id="dom-privilege-equalsother-other">other<a class="self-link" href="#dom-privilege-equalsother-other"></a></dfn>);
-  boolean <dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="method" data-export="" data-lt="subsumes(other)" id="dom-privilege-subsumesother">subsumes<a class="self-link" href="#dom-privilege-subsumesother"></a></dfn>(<a data-link-type="idl-name" href="#privilege0">Privilege</a> <dfn class="idl-code" data-dfn-for="Privilege/subsumes(other)" data-dfn-type="argument" data-export="" id="dom-privilege-subsumesother-other">other<a class="self-link" href="#dom-privilege-subsumesother-other"></a></dfn>);
 
+
+     <p>Each <a data-link-type="dfn" href="#privilege">privilege</a> is represented by a <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> object, the interface of which is
+    defined in this section.</p>
+     
+
+
+     <p>A <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> MUST have an <dfn data-dfn-type="dfn" data-noexport="" id="internal-privilege-label">internal privilege
+    label<a class="self-link" href="#internal-privilege-label"></a></dfn>.</p>
+     
+
+
+     <p>The <dfn data-dfn-type="dfn" data-noexport="" id="combination">combination<a class="self-link" href="#combination"></a></dfn> of privileges <var>A</var> and
+    <var>B</var> is a privilege produced by invoking the
+    <a data-link-type="functionish" href="#dom-equals-combineother">combine()</a> method on <var>A</var> (respectively,
+    <var>B</var>) with <var>B</var> (respectively, <var>A</var>) as an
+    argument.</p>
+     
+
+    
+     <pre class="idl">[<a class="idl-code" data-link-type="constructor" href="#dom-privilege-privilege">Constructor</a>, <a class="idl-code" data-link-type="constructor" href="#dom-privilege-freshprivilege">NamedConstructor</a>=<a data-link-type="idl-name">FreshPrivilege</a>]
+interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="privilege0">Privilege<a class="self-link" href="#privilege0"></a></dfn> {
   <a data-link-type="idl-name" href="#label1">Label</a> <dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="method" data-export="" data-lt="asLabel()" id="dom-privilege-aslabel">asLabel<a class="self-link" href="#dom-privilege-aslabel"></a></dfn>();
 
   <a data-link-type="idl-name" href="#privilege0">Privilege</a> <dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="method" data-export="" data-lt="combine(other)" id="dom-privilege-combineother">combine<a class="self-link" href="#dom-privilege-combineother"></a></dfn>(<a data-link-type="idl-name" href="#privilege0">Privilege</a> <dfn class="idl-code" data-dfn-for="Privilege/combine(other)" data-dfn-type="argument" data-export="" id="dom-privilege-combineother-other">other<a class="self-link" href="#dom-privilege-combineother-other"></a></dfn>);
   [Throws] <a data-link-type="idl-name" href="#privilege0">Privilege</a> <dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="method" data-export="" data-lt="mint(label)" id="dom-privilege-mintlabel">mint<a class="self-link" href="#dom-privilege-mintlabel"></a></dfn>(<a data-link-type="idl-name" href="#label1">Label</a> <dfn class="idl-code" data-dfn-for="Privilege/mint(label)" data-dfn-type="argument" data-export="" id="dom-privilege-mintlabel-label">label<a class="self-link" href="#dom-privilege-mintlabel-label"></a></dfn>);
 };
-
-partial interface <a class="idl-code" data-link-type="interface" href="#label1">Label</a> {
-  boolean <dfn class="idl-code" data-dfn-for="Label" data-dfn-type="method" data-export="" data-lt="subsumes(other, privs)" id="dom-label-subsumesother-privs">subsumes<a class="self-link" href="#dom-label-subsumesother-privs"></a></dfn>(<a data-link-type="idl-name" href="#label1">Label</a> <dfn class="idl-code" data-dfn-for="Label/subsumes(other, privs)" data-dfn-type="argument" data-export="" id="dom-label-subsumesother-privs-other">other<a class="self-link" href="#dom-label-subsumesother-privs-other"></a></dfn>, <a data-link-type="idl-name" href="#privilege0">Privilege</a> <dfn class="idl-code" data-dfn-for="Label/subsumes(other, privs)" data-dfn-type="argument" data-export="" id="dom-label-subsumesother-privs-privs">privs<a class="self-link" href="#dom-label-subsumesother-privs-privs"></a></dfn>);
-};
 </pre>
      
+    
+     <h4 class="heading settled" data-level="3.2.1" id="constructors0"><span class="secno">3.2.1. </span><span class="content">Constructors</span><a class="self-link" href="#constructors0"></a></h4>
+     
+    
+     <dl>
+      
+      <dt><dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="constructor" data-export="" id="dom-privilege-privilege">Privilege()<a class="self-link" href="#dom-privilege-privilege"></a></dfn>
+      
+      
+      <dd>
+      When invoking the <a data-link-type="functionish" href="#dom-privilege-privilege">Privilege()</a> constructor, the user
+      agent MUST return a new <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> that has an
+      <a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> set to
+      <code><a data-link-type="functionish" href="#dom-label-label">Label()</a></code>.
+      
+      
+      
+      <dt><dfn class="idl-code" data-dfn-for="Privilege" data-dfn-type="constructor" data-export="" id="dom-privilege-freshprivilege">FreshPrivilege()<a class="self-link" href="#dom-privilege-freshprivilege"></a></dfn>
+      
+      
+      <dd>
+      When invoking the <a data-link-type="functionish" href="#dom-privilege-freshprivilege">FreshPrivilege()</a> constructor, the user
+      agent MUST use an algorithm equivalent to the following:
+
+
+       <ol>
+        <li data-md="">
+         <p>Let <var>unique Label</var> be the label produced by invoking the
+<a data-link-type="functionish" href="#dom-label-label">Label(other)</a> constructor with a <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-2.3">globally unique
+identifier</a>.</p>
+         
+
+
+        <li data-md="">
+         <p>Return a new <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> that has an
+<a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> set to <var>unique Label</var>.</p>
+         
+</ol>
+      
+    
+     </dl>
+     
+
+    
+     <h4 class="heading settled" data-level="3.2.2" id="methods0"><span class="secno">3.2.2. </span><span class="content">Methods</span><a class="self-link" href="#methods0"></a></h4>
+     
+    
+     <dl>
+      
+      <dt><dfn class="idl-code" data-dfn-for="equals" data-dfn-type="method" data-export="" id="dom-equals-aslabel" title="asLabel()">asLabel()<a class="self-link" href="#dom-equals-aslabel"></a></dfn>
+      
+      
+      <dd>
+      MUST return the <a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> of the
+      <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> on which the method has been called.
+      
+      
+      
+      <dt><dfn class="idl-code" data-dfn-for="equals" data-dfn-type="method" data-export="" data-lt="combine(other)" id="dom-equals-combineother" title="combine(other)">combine(Privilege other)<a class="self-link" href="#dom-equals-combineother"></a></dfn>
+      
+      
+      <dd>
+      MUST return a new <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> whose <a data-link-type="dfn" href="#internal-privilege-label">internal
+      privilege label</a> is <a data-link-type="dfn" href="#equivalent">equivalent</a> to a <a data-link-type="dfn" href="#label">label</a>
+      created according to an algorithm equivalent to the following:
+
+
+       <ol>
+        <li data-md="">
+         <p>Let <var>lintrnal</var> be the
+<a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> of the 
+<a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> on which the method has been called.</p>
+         
+
+
+        <li data-md="">
+         <p>Let <var>lother</var> be the <a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> of
+the <a class="idl-code" data-link-type="argument" href="#dom-privilege-combineother-other">other</a> argument.</p>
+         
+
+
+        <li data-md="">
+         <p>Return <code><var>linternal</var>.<a class="idl-code" data-link-type="method">and</a>(<var>lother</var>)</code>.</p>
+         
+</ol>
+      
+
+      <dt><dfn class="idl-code" data-dfn-for="equals" data-dfn-type="method" data-export="" data-lt="mint(label)" id="dom-equals-mintlabel" title="mint(label)">mint(Label label)<a class="self-link" href="#dom-equals-mintlabel"></a></dfn>
+      
+
+      <dd>
+MUST return a new <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> whose <a data-link-type="dfn" href="#internal-privilege-label">internal
+privilege label</a> is <a data-link-type="dfn" href="#equivalent">equivalent</a> to a <a data-link-type="dfn" href="#label">label</a>
+created according to an algorithm equivalent to the following:
+
+
+       <ol>
+        <li data-md="">
+         <p>Let <var>linternal</var> be the
+<a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> of the 
+<a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> on which the method has been called.</p>
+         
+
+
+        <li data-md="">
+         <p>Let <var>lother</var> be the <a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> of
+the <a class="idl-code" data-link-type="argument" href="#dom-privilege-combineother-other">other</a> argument.</p>
+         
+
+
+        <li data-md="">
+         <p>Return <code><var>linternal</var>.<a class="idl-code" data-link-type="method">and</a>(<var>lother</var>)</code>.</p>
+         
+</ol>
+      
+    
+     </dl>
+     
+
+    
+     <div class="note" role="note">
+      Note, the <a class="idl-code" data-link-type="interface" href="#privilege0">Privilege</a> constructors and
+      <a data-link-type="functionish" href="#dom-equals-mintlabel">mint()</a> provide a way creating or <em>minting</em>
+      privileges; the context code must still take <a data-link-type="dfn">ownership</a> of
+      a privilege or set the <a data-link-type="dfn" href="#current-privilege">current privilege</a> to it, for the
+      privilege to be used (to bypass label restrictions).
+    </div>
+     
+
+    
+     <div class="example" id="example-cd7c2f42"><a class="self-link" href="#example-cd7c2f42"></a>
+      
+      <pre><code>COWL.privilege = new <a data-link-type="dfn" href="#privilege">Privilege</a>()
+</code></pre>
+      
+    
+     </div>
+     
+
+    
+     <div class="example" id="example-8a07bf87"><a class="self-link" href="#example-8a07bf87"></a>
+      Consider a modification to <a href="#example-checker">
+        password-checker example</a> that uses <a data-link-type="functionish" href="#dom-privilege-freshprivilege">FreshPrivilege()</a>s
+      to ensure that the untrusted checker cannot communicate with any
+      entity other than the parent context.
+      
+      <pre><code>// Create new fresh privilege: 
+var priv = new <a data-link-type="dfn">FreshPrivilege</a>()
+
+// Take ownership of privilege:
+COWL.privilege = COWL.privilege.combine(priv);
+
+// Associate the unique label with password:
+var labeldPassword = new <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>(password, {confidentiality: priv.asLabel()});
+
+// Send the labeled password to the checker iframe:
+checker.postMessage(labeledPassword, 'https://untrusted.com');
+</code></pre>
+      
+
+      <p>Once the <code>https://untrusted.com</code> context reads the
+      password is will be <a data-link-type="dfn">tainted</a> by the unique, <a data-link-type="dfn" href="#internal-privilege-label">internal
+      privilege label</a> of <code>priv</code>; the unique origin
+      ensures that it cannot send the password to, for example, public
+      parts of <code>https://example.com</code>. Indeed, only the
+      owner of <code>priv</code> can disseminate the labeled password
+      (result) arbitrarily.</p>
+      
+    
+     </div>
+     
+
   
     </section>
 
@@ -1197,7 +1396,7 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lab
 </pre>
      
     
-     <h4 class="heading settled" data-level="3.4.2" id="constructors0"><span class="secno">3.4.2. </span><span class="content">Constructors</span><a class="self-link" href="#constructors0"></a></h4>
+     <h4 class="heading settled" data-level="3.4.2" id="constructors1"><span class="secno">3.4.2. </span><span class="content">Constructors</span><a class="self-link" href="#constructors1"></a></h4>
      
     
      <dl>
@@ -1359,7 +1558,7 @@ influenced the computation.</p>
      
 
     
-     <h4 class="heading settled" data-level="3.4.4" id="methods0"><span class="secno">3.4.4. </span><span class="content">Methods</span><a class="self-link" href="#methods0"></a></h4>
+     <h4 class="heading settled" data-level="3.4.4" id="methods1"><span class="secno">3.4.4. </span><span class="content">Methods</span><a class="self-link" href="#methods1"></a></h4>
      
 
 
@@ -1533,10 +1732,19 @@ influenced the computation.</p>
   <ul class="indexlist">
    <li>and((Label or DOMString) other), <a href="#dom-label-andlabel-or-domstring-other">3.1.2</a>
    <li>and(other), <a href="#dom-label-andother">3.1</a>
-   <li>asLabel(), <a href="#dom-privilege-aslabel">3.2</a>
+   <li>asLabel()
+    <ul>
+     <li>method for Privilege, <a href="#dom-privilege-aslabel">3.2</a>
+     <li>method for equals, <a href="#dom-equals-aslabel">3.2.2</a>
+    </ul>
    <li>CILabel, <a href="#dictdef-cilabel">3.4.1</a>
    <li>clone(confidentiality, integrity), <a href="#dom-labeledobject-cloneconfidentiality-integrity">3.4.1</a>
-   <li>combine(other), <a href="#dom-privilege-combineother">3.2</a>
+   <li>combination, <a href="#combination">3.2</a>
+   <li>combine(other)
+    <ul>
+     <li>method for Privilege, <a href="#dom-privilege-combineother">3.2</a>
+     <li>method for equals, <a href="#dom-equals-combineother">3.2.2</a>
+    </ul>
    <li>confidentiality
     <ul>
      <li>attribute for COWL, <a href="#dom-cowl-confidentiality">3.3.1</a>
@@ -1556,13 +1764,9 @@ influenced the computation.</p>
    <li>effective integrity label, <a href="#effective-integrity-label">2.2</a>
    <li>empty label, <a href="#empty-label">3.1</a>
    <li>enabled, <a href="#dom-cowl-enabled">3.3.1</a>
-   <li>equals(other)
-    <ul>
-     <li>method for Label, <a href="#dom-label-equalsother">3.1.2</a>
-     <li>method for Privilege, <a href="#dom-privilege-equalsother">3.2</a>
-    </ul>
+   <li>equals(other), <a href="#dom-label-equalsother">3.1.2</a>
    <li>equivalent, <a href="#equivalent">2.1</a>
-   <li>FreshPrivilege(), <a href="#dom-privilege-freshprivilege">3.2</a>
+   <li>FreshPrivilege(), <a href="#dom-privilege-freshprivilege">3.2.1</a>
    <li>fromJSON(obj), <a href="#dom-label-fromjsonobj">3.1</a>
    <li>integrity
     <ul>
@@ -1571,6 +1775,8 @@ influenced the computation.</p>
      <li>argument for LabeledObject/clone(confidentiality, integrity), <a href="#dom-labeledobject-cloneconfidentiality-integrity-integrity">3.4.1</a>
      <li>attribute for LabeledObject, <a href="#dom-labeledobject-integrity">3.4.3</a>
     </ul>
+   <li>internal privilege
+    label, <a href="#internal-privilege-label">3.2</a>
    <li>Label(), <a href="#dom-label-label">3.1.1</a>
    <li>Label, <a href="#label1">3.1</a>
    <li>label
@@ -1587,7 +1793,11 @@ influenced the computation.</p>
    <li>labels, <a href="#dom-labeledobject-labeledobjectobj-labels-labels">3.4.1</a>
    <li>label set, <a href="#label-set">3.1</a>
    <li>label subsumption, <a href="#label-subsumption">4.2</a>
-   <li>mint(label), <a href="#dom-privilege-mintlabel">3.2</a>
+   <li>mint(label)
+    <ul>
+     <li>method for Privilege, <a href="#dom-privilege-mintlabel">3.2</a>
+     <li>method for equals, <a href="#dom-equals-mintlabel">3.2.2</a>
+    </ul>
    <li>normal form, <a href="#normal-form">2.1</a>
    <li>obj
     <ul>
@@ -1604,10 +1814,7 @@ influenced the computation.</p>
      <li>argument for Label/subsumes(other), <a href="#dom-label-subsumesother-other">3.1</a>
      <li>argument for Label/and(other), <a href="#dom-label-andother-other">3.1</a>
      <li>argument for Label/_or(other), <a href="#dom-label-_orother-other">3.1</a>
-     <li>argument for Privilege/equals(other), <a href="#dom-privilege-equalsother-other">3.2</a>
-     <li>argument for Privilege/subsumes(other), <a href="#dom-privilege-subsumesother-other">3.2</a>
      <li>argument for Privilege/combine(other), <a href="#dom-privilege-combineother-other">3.2</a>
-     <li>argument for Label/subsumes(other, privs), <a href="#dom-label-subsumesother-privs-other">3.2</a>
     </ul>
    <li>Privilege, <a href="#privilege0">3.2</a>
    <li>privilege
@@ -1615,18 +1822,12 @@ influenced the computation.</p>
      <li>definition of, <a href="#privilege">2.2</a>
      <li>attribute for COWL, <a href="#dom-cowl-privilege">3.3.1</a>
     </ul>
-   <li>Privilege(), <a href="#dom-privilege-privilege">3.2</a>
-   <li>privs, <a href="#dom-label-subsumesother-privs-privs">3.2</a>
+   <li>Privilege(), <a href="#dom-privilege-privilege">3.2.1</a>
    <li>protectedObject, <a href="#dom-labeledobject-protectedobject">3.4.3</a>
    <li>protected
       object, <a href="#protected-object">3.4.1</a>
    <li>subsumes, <a href="#subsumes">2.1</a>
-   <li>subsumes(other)
-    <ul>
-     <li>method for Label, <a href="#dom-label-subsumesother">3.1.2</a>
-     <li>method for Privilege, <a href="#dom-privilege-subsumesother">3.2</a>
-    </ul>
-   <li>subsumes(other, privs), <a href="#dom-label-subsumesother-privs">3.2</a>
+   <li>subsumes(other), <a href="#dom-label-subsumesother">3.1.2</a>
    <li>toJSON(), <a href="#dom-label-tojson">3.1</a>
    <li>write check, <a href="#write-check0">4.5</a></ul>
   <h3 class="no-num heading settled" id="index-defined-elsewhere"><span class="content">Terms defined by reference</span><a class="self-link" href="#index-defined-elsewhere"></a></h3>
@@ -1642,6 +1843,7 @@ influenced the computation.</p>
     </ul>
    <li><a data-link-type="biblio" href="#biblio-rfc6454">[RFC6454]</a> defines the following terms:
     <ul>
+     <li><a href="https://tools.ietf.org/html/rfc6454#section-2.3">globally unique identifier</a>
      <li><a href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a>
     </ul>
    <li><a data-link-type="biblio" href="#biblio-webmessaging">[webmessaging]</a> defines the following terms:
@@ -1686,19 +1888,12 @@ interface <a href="#label1">Label</a> {
   [Throws] static <a data-link-type="idl-name" href="#label1">Label</a> <a href="#dom-label-fromjsonobj">fromJSON</a>(object <a href="#dom-label-fromjsonobj-obj">obj</a>);
 };
 
-[<a href="#dom-privilege-privilege">Constructor</a>, <a href="#dom-privilege-freshprivilege">NamedConstructor</a>=<a data-link-type="idl-name">FreshPrivilege</a>]
+[<a class="idl-code" data-link-type="constructor" href="#dom-privilege-privilege">Constructor</a>, <a class="idl-code" data-link-type="constructor" href="#dom-privilege-freshprivilege">NamedConstructor</a>=<a data-link-type="idl-name">FreshPrivilege</a>]
 interface <a href="#privilege0">Privilege</a> {
-  boolean <a href="#dom-privilege-equalsother">equals</a>(<a data-link-type="idl-name" href="#privilege0">Privilege</a> <a href="#dom-privilege-equalsother-other">other</a>);
-  boolean <a href="#dom-privilege-subsumesother">subsumes</a>(<a data-link-type="idl-name" href="#privilege0">Privilege</a> <a href="#dom-privilege-subsumesother-other">other</a>);
-
   <a data-link-type="idl-name" href="#label1">Label</a> <a href="#dom-privilege-aslabel">asLabel</a>();
 
   <a data-link-type="idl-name" href="#privilege0">Privilege</a> <a href="#dom-privilege-combineother">combine</a>(<a data-link-type="idl-name" href="#privilege0">Privilege</a> <a href="#dom-privilege-combineother-other">other</a>);
   [Throws] <a data-link-type="idl-name" href="#privilege0">Privilege</a> <a href="#dom-privilege-mintlabel">mint</a>(<a data-link-type="idl-name" href="#label1">Label</a> <a href="#dom-privilege-mintlabel-label">label</a>);
-};
-
-partial interface <a class="idl-code" data-link-type="interface" href="#label1">Label</a> {
-  boolean <a href="#dom-label-subsumesother-privs">subsumes</a>(<a data-link-type="idl-name" href="#label1">Label</a> <a href="#dom-label-subsumesother-privs-other">other</a>, <a data-link-type="idl-name" href="#privilege0">Privilege</a> <a href="#dom-label-subsumesother-privs-privs">privs</a>);
 };
 
 interface <a href="#cowl">COWL</a> {

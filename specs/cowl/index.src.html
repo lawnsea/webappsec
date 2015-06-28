@@ -775,7 +775,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
     <div class="example">
       To be backwards-compatible with the Same-Origin Policy, COWL
-      grants each <a>browsing context</a> a <a>default privilege</a>
+      grants each <a>browsing context</a> a <a>default initial privilege</a>
       that corresponds to their origin. For example, a page on
       <code>https://example.com</code> has a privilege whose <a>internal
       privilege label</a> is
@@ -868,17 +868,81 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   </section>
 
   <section>
-    <h3 id="context-labels">Labeled Context Interface</h3>
+    <h3 id="context-labels">Labeled Contexts and Workers Interface</h3>
 
-    ISSUE: describe danger of using privileges implicitly; recommend
-    using LabeledObjects everywhere.
+    COWL extends <a>browsing contexts</a> and <a>Workers</a> with a
+    corresponding <dfn>COWL state</dfn>, which consists of:
 
-    ISSUE: for discussion: should privileges be used explicitly?
+    * The <dfn>confinement mode</dfn> status, which indicates whether
+    or not COWL is enabled and thus <a>labels</a> should be enforced
+    in the current context.
 
+    * The <dfn>context confidentiality label</dfn>, which reflects
+    the sensitivity of the data that the context has read, and thus
+    can write to.
+
+    * The <dfn>context integrity label</dfn>, which reflects the
+    integrity of the data that the context has read, and thus can
+    write to.
+
+    * The <dfn>context privilege</dfn>, which encodes the context's
+    ability to bypass restrictions of certain labels.
+
+    Each <a>browsing context</a>'s and <a>Worker</a>'s <dfn>COWL
+    state</dfn> MUST be initially set to the <dfn>default COWL
+    state</dfn>, where:
+
+    * The <a>confinement mode</a> is disabled.
+
+    * The <a>context confidentiality label</a> is set to the
+    <dfn>default confidentiality label</dfn>: an <a>empty label</a>.
+
+    * The <a>context integrity label</a> is set to the
+    <dfn>default integrity label</dfn>: an <a>empty label</a>.
+
+    * The <a>context privilege</a> is set to the
+    <dfn>default privilege</dfn>: a
+    <a>privilege</a> whose <a>internal privilege label</a> is
+    equivalent to <a>Label(<var>origin</var>)</a></code>, where
+    <var>origin</var> is the string representation of the context or
+    Worker's <a>origin</a>.
+
+    <div class="note">
+      To be backwards-compatible with the Same-Origin Policy the
+      <a>default COWL state</a> is very relaxed. Specifically:
+      
+      * Unless <a>confinement mode</a> is enabled, a context is not
+      subject to label restrictions. (Of course, algorithms such as the
+      <a>context tainting</a> algorithm implicitly enable confinement
+      mode.)
+
+      * Unless the <a>current confidentiality</a> label is
+      set&mdash;explicitly or implicitly via the <a>context tainting</a>
+      algorithm&mdash;to a non-<a>empty label</a>, it can communicate to
+      any context, server or Worker; code is only subject to the
+      restrictions imposed by other mechanism such as the Same-Origin
+      Policy, CSP, and CORS.
+
+      * Unless the <a>current privilege</a> is adjusted, even when
+      <a>confinement mode</a> is enabled, code can accidentally leak
+      data sensitive to the context's <a>origin</a>. Such data is
+      implicitly declassified using the <a>context privilege</a>.
+      Authors should always send <a>LabeledObjects()</a> to explicitly
+      communicate the sensitivity (and integrity) of the data they are
+      sharing.
+       
+      ISSUE: for discussion: should privileges be used explicitly
+      instead?
+
+    </div>
+
+    Each context and Worker's <a>COWL state</a> is made available via
+    the <a interface>COWL</a> interface defined below.
 
     <pre class="idl">
       interface COWL {
-        static attribute boolean enabled;
+        static void enable();
+        static boolean isEnabled();
 
         [SetterThrows] static attribute Label confidentiality;
         [SetterThrows] static attribute Label integrity;
@@ -889,15 +953,6 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
     <h4>Attributes</h4>
     <dl dfn-for="COWL">
-      <dt><dfn attribute title="COWL/enabled">enabled</dfn></dt>
-      <dd>
-        * On setting, the user agent MUST enable <a>confinement mode</a> for
-        the current context.
-
-        * On getting, the user agent MUST return <code>true</code> if
-        the <a>confinement mode</a> was enabled for the current context;
-        else, it MUST return <code>false</code>
-      </dd>
       <dt><dfn attribute title="COWL/confidentiality">confidentiality</dfn></dt>
       <dd>
         * On getting, the user agent MUST return the <a>current
@@ -906,7 +961,10 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On setting, the user agent MUST use an algorithm equivalent
         to the following:
 
+          0. Enable <a> confinement mode</a>.
+
           1. Let <var>conf</var> be the set confidentiality label.
+
         
           2. Let <var>canWrite</var> be the result of invoking
           the <a>write check</a> algorithm with <var>conf</var>
@@ -928,6 +986,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On setting, the user agent MUST use an algorithm equivalent
         to the following:
 
+          0. Enable <a> confinement mode</a>.
+
           1. Let <var>int</var> be the set integrity label.
         
           2. Let <var>canWrite</var> be the result of invoking the
@@ -947,10 +1007,24 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On getting, the user agent MUST return the <a>current
         privilege</a>.
 
-        * On setting, the user agent MUST set the <a>current
-        privilege</a> to the set privilege.
+      * On setting, the user agent MUST enable <a>confinement mode</a>
+      and set the <a>current privilege</a> to the set privilege.
+      </dd>
+    </dl>
 
-
+    <h4>Methods</h4>
+    <dl dfn-for="COWL">
+      <dt><dfn method title="COWL/enable(0">enable()</dfn></dt>
+      <dd>
+      On invocation, the user agent MUST enable <a>confinement
+      mode</a> by setting the current context's <a>COWL state</a>
+      confinement mode status.
+      </dd>
+      <dt><dfn method title="COWL/isEnabled()">isEnabled()</dfn></dt>
+      <dd>
+        On invocation, the user agent MUST return <code>true</code> if
+        the <a>confinement mode</a> was enabled for the current
+        context; else, it MUST return <code>false</code>
       </dd>
     </dl>
   </section>
@@ -1184,6 +1258,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
     ISSUE: describe taint
 
+
   </section>
   <section>
     <h3 id="write-check">Write Check</h3>
@@ -1197,3 +1272,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   </section>
 </section>
+
+    ISSUE: most of the spec talks about contexts not at all about
+    workers; should revise to be more general. (Should mostly be
+    straightforward.)

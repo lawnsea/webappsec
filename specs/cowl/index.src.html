@@ -605,11 +605,6 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
     </li>
     <li>
-      A privilege <var>P1</var> is a <dfn>delegated privilege</dfn> of
-      <var>P2</var> if <var>P2</var>'s <a>internal privilege label</a>
-      subsumes <var>P1</var>'s <a>internal privilege label</a>.
-    </li>
-    <li>
       The <dfn>current privilege</dfn> is the privilege associated
       with the current context. [[#context-labels]] specifies how
       privileges are associated with contexts.
@@ -842,8 +837,13 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
     A privilege is said to be an <dfn>empty privilege</dfn> if its
     <a>internal privilege label</a> is the <a>empty label</a>. A
-    context is said to be <dfn>unprivileged</dfn> if its context label
-    is the <a>empty privilege</a>.
+    context is said to be <dfn>unprivileged</dfn> if its context
+    privilege is the <a>empty privilege</a>.
+
+    A privilege <var>P1</var> is said to be a <dfn>delegated
+      privilege</dfn> of <var>P2</var> if <var>P2</var>'s <a>internal
+      privilege label</a> subsumes <var>P1</var>'s <a>internal
+    privilege label</a>.
 
     <pre class="idl">
       [Constructor, NamedConstructor=FreshPrivilege]
@@ -878,7 +878,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     </dl>
 
     <h4>Methods</h4>
-    <dl dfn-for="equals">
+    <dl dfn-for="Privilege">
       <dt><dfn method title="asLabel()">asLabel()</dfn></dt>
       <dd>
       MUST return the <a>internal privilege label</a> of the

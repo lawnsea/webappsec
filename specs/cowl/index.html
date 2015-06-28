@@ -1783,19 +1783,20 @@ influenced the computation.</p>
     
      <h3 class="heading settled" data-level="3.6" id="request-header"><span class="secno">3.6. </span><span class="content">The <code>COWL</code> HTTP Request Header Field</span><a class="self-link" href="#request-header"></a></h3>
      
-    The <dfn data-dfn-type="dfn" data-local-lt="COWL" data-noexport="" id="cowl0"><code>COWL</code><a class="self-link" href="#cowl0"></a></dfn> header field
-    indicates that a particular request was sent from a context that
-    had <a data-link-type="dfn">confinement mode</a> enabled. Its value contains the
+    The user agent MUST send a header field named <dfn data-dfn-type="dfn" data-local-lt="COWL" data-noexport="" id="cowl0"><code>COWL</code><a class="self-link" href="#cowl0"></a></dfn>
+    along with requests if <a data-link-type="dfn">confinement mode</a> is enabled.
+    The value of this header MUST contained the
     stringyfied context’s <a data-link-type="dfn" href="#current-confidentiality-label">current confidentiality label</a>,
-    <a data-link-type="dfn" href="#current-integrity-label">current integrity label</a>, and <a data-link-type="dfn" href="#current-privilege">current privilege</a>.
+    <a data-link-type="dfn" href="#current-integrity-label">current integrity label</a>, and <a data-link-type="dfn" href="#current-privilege">current privilege</a>, as
+    defined by the following ABNF grammar:
 
 
      <p class="issue" id="issue-1d09bad5"><a class="self-link" href="#issue-1d09bad5"></a> describe request header grammar</p>
      
 
     
-     <div class="example" id="example-33401665"><a class="self-link" href="#example-33401665"></a>
-      Request header from a <code>http://a.com</code> context that has
+     <div class="example" id="example-d074badb"><a class="self-link" href="#example-d074badb"></a>
+      Request header from an <code>http://a.com</code> context that has
       read data sensitive to <code>http://b.com</code>.
       
       <pre><code>COWL: <a data-link-type="dfn">confidentiality-label</a> [ ['https://b.com'] ];

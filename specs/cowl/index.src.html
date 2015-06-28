@@ -1112,16 +1112,18 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
     <h3 id="request-header">The <code>COWL</code> HTTP Request Header Field</h3>
-    The <dfn local-lt="COWL"><code>COWL</code></dfn> header field
-    indicates that a particular request was sent from a context that
-    had <a>confinement mode</a> enabled. Its value contains the
+    The user agent MUST send a header field named <dfn
+    local-lt="COWL"><code>COWL</code></dfn>
+    along with requests if <a>confinement mode</a> is enabled.
+    The value of this header MUST contained the
     stringyfied context's <a>current confidentiality label</a>,
-    <a>current integrity label</a>, and <a>current privilege</a>.
+    <a>current integrity label</a>, and <a>current privilege</a>, as
+    defined by the following ABNF grammar:
 
     ISSUE: describe request header grammar
 
     <div class="example">
-      Request header from a <code>http://a.com</code> context that has
+      Request header from an <code>http://a.com</code> context that has
       read data sensitive to <code>http://b.com</code>.
       <pre><code>
       COWL: <a>confidentiality-label</a> [ ['https://b.com'] ];

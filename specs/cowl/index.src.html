@@ -24,6 +24,7 @@ Indent: 2
 spec: CORS; urlPrefix: http://www.w3.org/TR/cors/
   type: dfn
     text: CORS
+    text: Access-Control-Allow-Origin; url: access-control-allow-origin-response-header
 spec: WEBMESSAGING; urlPrefix: http://www.w3.org/TR/webmessaging/
   type: method
     text: postMessage(); url: dom-window-postmessage
@@ -75,6 +76,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     "title": "Disjunction Category Labels",
     "href": "http://www.scs.stanford.edu/~deian/pubs/stefan:2011:dclabels.pdf",
     "publisher": "Springer Berlin Heidelberg"
+  },
+  "COWL-OSDI": {
+    "authors": ["Deian Stefan", "Edward Z. Yang", "Petr Marchencko", "Alejandro Russo", "David Herman", "Brad Karp", "David Mazieres", "John C. Mitchell"],
+    "title": "Protecting Users by Confining JavaScript with COWL",
+    "href":"https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-stefan.pdf",
+    "publisher": "USENIX"
   },
   "URL": {
     "authors": [ "Anne van Kesteren", "Sam Ruby" ],
@@ -231,6 +238,12 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     also safe, since it has not inspected the sensitive password.
   </div>
 
+  This design pattern can be used to build safe password managers, for
+  example, where the crypto layer and storage layer are provided by
+  distrusting, but not malicious, services. Similarly, it can be used
+  to implement safe encrypted document editors. The original COWL
+  academic paper describes several such use cases [[COWL-OSDI]]
+
   <h4 id="examples-checker-worker">Untrusted library</h4>
 
   Rather than include a library inline using a <{script}> element, an
@@ -240,20 +253,20 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   creating many iframes is costly. (It also requires the author to
   address subtle issues, such as ensuring the iframe is of a different
   <a>origin</a>.) Hence, COWL provides <a>light-weight Workers</a> as
-  a both a lighter-weight and safer (since it does not have the wide
-  attack surface of iframes&mdash;e.g., the DOM) primitive for loading
-  scripts.
+  a both lighter-weight and safer (since it does not have the wide
+  attack surface of iframes&mdash;e.g., the DOM) constructs for
+  loading scripts.
 
   <div class="example">
 
     Consider a modification to the above <a href="#example-checker">
       password-checker example</a> that uses <a>light-weight
       Workers</a> to isolate and confine the checker script. The
-    author of <code>https://example.com</code> can load the script an
-    <a>unprivileged</a> context (ensuring it does not have the
+    author of <code>https://example.com</code> can load the script in
+    an <a>unprivileged</a> Worker (ensuring it does not have the
     <a>privilege</a> to arbitrarily leak
-    <code>https://example.com</code> data) and communicate with via
-    message passing, much as in the previous example:
+    <code>https://example.com</code> data) and communicate with it via
+    message-passing, much as in the previous example:
 
     <pre><code>
     // Load the checker script in an unprivileged light-weight Worker:
@@ -290,10 +303,36 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   </div>
 
-  <h4 id="examples-mashup">Third-party mashup</h4>
+  <h4 id="examples-mashup">Third-party untrusted mashup</h4>
 
-  ISSUE: describe client-side mint or encrypted document editor.
+  A server operator wishes to provide third-party mashups access to
+  user data. In addition to using CORS response to restrict the
+  <a>origins</a> that can access the data [[!CORS]], the operator
+  wishes to restrict how the data is further disseminated by these
+  third-parties. To do so, the operator may send a response header
+  field named <code>COWL</code> (as described in [[#response-header]])
+  whose value contains the sensitivity of the data in the form of a
+  (serialized) <a>label</a>.  In turn, COWL enforces the label
+  restrictions on the third-party code, once it inspects the response.
 
+  <div class="example">
+  The server operator of <code>https://a.com</code> uses a CORS
+  response header to "grant" <code>https://b.com</code> access to a
+  resource. The operator also sets a <code>COWL</code> header to
+  specify that the resource is confidential to <code>https://a.com</code>:
+
+  <pre><code>
+   <a>Access-Control-Allow-Origin</a>: https://b.com
+   <a href="#response-header">COWL</a>: confidentiality: [ ["https://a.com"] ]
+  </code></pre>
+
+  Once a <code>https://b.com</code> context read the response, COWL
+  imposes the label restrictions
+  (<code><a interface>Label</a>("https://a.com")</code>) and limits
+  the code's ability to disseminate the data to
+  <code>https://a.com</code>.
+  </div>
+  
   <h4 id="examples-leastpriv">Least-privileged content</h4>
 
   ISSUE: describe how to drop privileges.
@@ -1219,7 +1258,9 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <h3 id="response-header">The <code>COWL</code> HTTP Response Header Field</h3>
 
     ISSUE: describe response header grammar
+
     ISSUE: describe how response header is processes
+
     ISSUE: describe how labeled headers and XHR work
 
     <div class="example">
@@ -1278,6 +1319,33 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   </section>
 
 </section>
+
+<!-- Big Text: workers -->
+<section>
+  <h2 id="lworkers">Light-weight Workers</h2>
+
+  <pre class="idl">
+    [Constructor(DOMString scriptURL, InitCOWLstate? initState)]
+    interface LWorker : EventTarget {
+      void postMessage(any message);
+      [TreatNonCallableAsNull] attribute Function? onmessage;
+    }
+  </pre>
+
+  ISSUE: describe worker interface
+
+  <h3 id="lworker-global">The <a>LWorkerGlobalScope</a> interface</h3>
+
+  <pre class="idl">
+  interface LWorkerGlobalScope : DedicatedWorkerGlobalScope {
+  };
+  </pre>
+
+  ISSUE: describe worker global
+
+
+</section>
+
 
 <!-- Big Text: algorithms -->
 <section>

@@ -71,7 +71,7 @@
    <h1 class="p-name no-ref" id="title">Confinement with Origin Web Labels</h1>
   
    <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft,
-    <time class="dt-updated" datetime="2015-06-27">27 June 2015</time></span></h2>
+    <time class="dt-updated" datetime="2015-06-28">28 June 2015</time></span></h2>
   
    <div data-fill-with="spec-metadata">
     <dl>
@@ -179,7 +179,7 @@ privilege-separated, compartmentalized applications.</p>
        <ul class="toc">
         <li><a href="#examples-checker"><span class="secno">1.2.1</span> <span class="content">Untrusted service</span></a>
         <li><a href="#examples-checker-worker"><span class="secno">1.2.2</span> <span class="content">Untrusted library</span></a>
-        <li><a href="#examples-mashup"><span class="secno">1.2.3</span> <span class="content">Third-party mashup</span></a>
+        <li><a href="#examples-mashup"><span class="secno">1.2.3</span> <span class="content">Third-party untrusted mashup</span></a>
         <li><a href="#examples-leastpriv"><span class="secno">1.2.4</span> <span class="content">Least-privileged content</span></a>
         <li><a href="#examples-privsep"><span class="secno">1.2.5</span> <span class="content">Privilege separation</span></a>
         <li><a href="#examples-isolation"><span class="secno">1.2.6</span> <span class="content">User isolation</span></a>
@@ -217,13 +217,17 @@ privilege-separated, compartmentalized applications.</p>
       <li><a href="#response-header"><span class="secno">3.5</span> <span class="content">The <code>COWL</code> HTTP Response Header Field</span></a>
       <li><a href="#request-header"><span class="secno">3.6</span> <span class="content">The <code>COWL</code> HTTP Request Header Field</span></a>
      </ul>
-    <li><a href="#algorithms"><span class="secno">4</span> <span class="content">Algorithms</span></a>
+    <li><a href="#lworkers"><span class="secno">4</span> <span class="content">Light-weight Workers</span></a>
      <ul class="toc">
-      <li><a href="#reduce-to-normal-form"><span class="secno">4.1</span> <span class="content">Label Normal Form Reduction</span></a>
-      <li><a href="#subsumes-check"><span class="secno">4.2</span> <span class="content">Label Subsumption</span></a>
-      <li><a href="#label-reduce"><span class="secno">4.3</span> <span class="content">Label Downgrade</span></a>
-      <li><a href="#taint-context"><span class="secno">4.4</span> <span class="content">Context Tainting</span></a>
-      <li><a href="#write-check"><span class="secno">4.5</span> <span class="content">Write Check</span></a>
+      <li><a href="#lworker-global"><span class="secno">4.1</span> <span class="content">The <span>LWorkerGlobalScope</span> interface</span></a>
+     </ul>
+    <li><a href="#algorithms"><span class="secno">5</span> <span class="content">Algorithms</span></a>
+     <ul class="toc">
+      <li><a href="#reduce-to-normal-form"><span class="secno">5.1</span> <span class="content">Label Normal Form Reduction</span></a>
+      <li><a href="#subsumes-check"><span class="secno">5.2</span> <span class="content">Label Subsumption</span></a>
+      <li><a href="#label-reduce"><span class="secno">5.3</span> <span class="content">Label Downgrade</span></a>
+      <li><a href="#taint-context"><span class="secno">5.4</span> <span class="content">Context Tainting</span></a>
+      <li><a href="#write-check"><span class="secno">5.5</span> <span class="content">Write Check</span></a>
      </ul>
     <li><a href="#conformance"><span class="secno"></span> <span class="content">Conformance</span></a>
      <ul class="toc">
@@ -430,6 +434,14 @@ checker.postMessage(labeledPassword, "https://untrusted.com");
      </div>
      
 
+
+     <p>This design pattern can be used to build safe password managers, for
+  example, where the crypto layer and storage layer are provided by
+  distrusting, but not malicious, services. Similarly, it can be used
+  to implement safe encrypted document editors. The original COWL
+  academic paper describes several such use cases <a data-link-type="biblio" href="#biblio-cowl-osdi">[COWL-OSDI]</a></p>
+     
+
   
      <h4 class="heading settled" data-level="1.2.2" id="examples-checker-worker"><span class="secno">1.2.2. </span><span class="content">Untrusted library</span><a class="self-link" href="#examples-checker-worker"></a></h4>
      
@@ -442,28 +454,28 @@ checker.postMessage(labeledPassword, "https://untrusted.com");
   creating many iframes is costly. (It also requires the author to
   address subtle issues, such as ensuring the iframe is of a different
   <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a>.) Hence, COWL provides <a data-link-type="dfn">light-weight Workers</a> as
-  a both a lighter-weight and safer (since it does not have the wide
-  attack surface of iframes—e.g., the DOM) primitive for loading
-  scripts.</p>
+  a both lighter-weight and safer (since it does not have the wide
+  attack surface of iframes—e.g., the DOM) constructs for
+  loading scripts.</p>
      
 
   
-     <div class="example" id="example-6d7592c3"><a class="self-link" href="#example-6d7592c3"></a>
+     <div class="example" id="example-2ead2792"><a class="self-link" href="#example-2ead2792"></a>
 
 
       <p>Consider a modification to the above <a href="#example-checker">
       password-checker example</a> that uses <a data-link-type="dfn">light-weight
       Workers</a> to isolate and confine the checker script. The
-    author of <code>https://example.com</code> can load the script an
-    <a data-link-type="dfn" href="#unprivileged">unprivileged</a> context (ensuring it does not have the
+    author of <code>https://example.com</code> can load the script in
+    an <a data-link-type="dfn" href="#unprivileged">unprivileged</a> Worker (ensuring it does not have the
     <a data-link-type="dfn" href="#privilege">privilege</a> to arbitrarily leak
-    <code>https://example.com</code> data) and communicate with via
-    message passing, much as in the previous example:</p>
+    <code>https://example.com</code> data) and communicate with it via
+    message-passing, much as in the previous example:</p>
       
 
     
       <pre><code>// Load the checker script in an unprivileged light-weight Worker:
-var checker = new <a class="idl-code" data-link-type="interface">LWorker</a>("https://untrusted.com/checker.js", { privilege: new <a data-link-type="functionish" href="#dom-privilege-privilege">Privilege()</a> });
+var checker = new <a class="idl-code" data-link-type="interface" href="#lworker">LWorker</a>("https://untrusted.com/checker.js", { privilege: new <a data-link-type="functionish" href="#dom-privilege-privilege">Privilege()</a> });
 
 // Register a handler, waiting for the result from the checker:
 checker.onmessage = function (event) {
@@ -502,11 +514,43 @@ onmessage = function(event) {
      
 
   
-     <h4 class="heading settled" data-level="1.2.3" id="examples-mashup"><span class="secno">1.2.3. </span><span class="content">Third-party mashup</span><a class="self-link" href="#examples-mashup"></a></h4>
+     <h4 class="heading settled" data-level="1.2.3" id="examples-mashup"><span class="secno">1.2.3. </span><span class="content">Third-party untrusted mashup</span><a class="self-link" href="#examples-mashup"></a></h4>
      
 
 
-     <p class="issue" id="issue-93214987"><a class="self-link" href="#issue-93214987"></a> describe client-side mint or encrypted document editor.</p>
+     <p>A server operator wishes to provide third-party mashups access to
+  user data. In addition to using CORS response to restrict the
+  <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origins</a> that can access the data <a data-link-type="biblio" href="#biblio-cors">[CORS]</a>, the operator
+  wishes to restrict how the data is further disseminated by these
+  third-parties. To do so, the operator may send a response header
+  field named <code>COWL</code> (as described in <a href="#response-header">§3.5 The COWL HTTP Response Header Field</a>)
+  whose value contains the sensitivity of the data in the form of a
+  (serialized) <a data-link-type="dfn" href="#label">label</a>.  In turn, COWL enforces the label
+  restrictions on the third-party code, once it inspects the response.</p>
+     
+
+  
+     <div class="example" id="example-2fc947b7"><a class="self-link" href="#example-2fc947b7"></a>
+  The server operator of <code>https://a.com</code> uses a CORS
+  response header to "grant" <code>https://b.com</code> access to a
+  resource. The operator also sets a <code>COWL</code> header to
+  specify that the resource is confidential to <code>https://a.com</code>:
+
+  
+      <pre><code><a data-link-type="dfn" href="http://www.w3.org/TR/cors/#access-control-allow-origin-response-header">Access-Control-Allow-Origin</a>: https://b.com
+<a href="#response-header">COWL</a>: confidentiality: [ ["https://a.com"] ]
+</code></pre>
+      
+
+
+      <p>Once a <code>https://b.com</code> context read the response, COWL
+  imposes the label restrictions
+  (<code><a class="idl-code" data-link-type="interface" href="#label1">Label</a>("https://a.com")</code>) and limits
+  the code’s ability to disseminate the data to
+  <code>https://a.com</code>.</p>
+      
+  
+     </div>
      
 
   
@@ -1940,9 +1984,15 @@ influenced the computation.</p>
      
 
 
-     <p class="issue" id="issue-4fe82c66"><a class="self-link" href="#issue-4fe82c66"></a> describe response header grammar
-    ISSUE: describe how response header is processes
-    ISSUE: describe how labeled headers and XHR work</p>
+     <p class="issue" id="issue-e30b85a5"><a class="self-link" href="#issue-e30b85a5"></a> describe response header grammar</p>
+     
+
+
+     <p class="issue" id="issue-f4bc3b24"><a class="self-link" href="#issue-f4bc3b24"></a> describe how response header is processes</p>
+     
+
+
+     <p class="issue" id="issue-8027d210"><a class="self-link" href="#issue-8027d210"></a> describe how labeled headers and XHR work</p>
      
 
     
@@ -2028,11 +2078,43 @@ influenced the computation.</p>
 
    <section>
   
-    <h2 class="heading settled" data-level="4" id="algorithms"><span class="secno">4. </span><span class="content">Algorithms</span><a class="self-link" href="#algorithms"></a></h2>
+    <h2 class="heading settled" data-level="4" id="lworkers"><span class="secno">4. </span><span class="content">Light-weight Workers</span><a class="self-link" href="#lworkers"></a></h2>
+
+  
+    <pre class="idl">[<dfn class="idl-code" data-dfn-for="LWorker" data-dfn-type="constructor" data-export="" data-lt="LWorker(scriptURL, initState)" id="dom-lworker-lworkerscripturl-initstate">Constructor<a class="self-link" href="#dom-lworker-lworkerscripturl-initstate"></a></dfn>(DOMString <dfn class="idl-code" data-dfn-for="LWorker/LWorker(scriptURL, initState)" data-dfn-type="argument" data-export="" id="dom-lworker-lworkerscripturl-initstate-scripturl">scriptURL<a class="self-link" href="#dom-lworker-lworkerscripturl-initstate-scripturl"></a></dfn>, <a data-link-type="idl-name">InitCOWLstate</a>? <dfn class="idl-code" data-dfn-for="LWorker/LWorker(scriptURL, initState)" data-dfn-type="argument" data-export="" id="dom-lworker-lworkerscripturl-initstate-initstate">initState<a class="self-link" href="#dom-lworker-lworkerscripturl-initstate-initstate"></a></dfn>)]
+interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lworker">LWorker<a class="self-link" href="#lworker"></a></dfn> : <a data-link-type="idl-name" href="http://dom.spec.whatwg.org/#eventtarget">EventTarget</a> {
+  void <dfn class="idl-code" data-dfn-for="LWorker" data-dfn-type="method" data-export="" data-lt="postMessage(message)" id="dom-lworker-postmessagemessage">postMessage<a class="self-link" href="#dom-lworker-postmessagemessage"></a></dfn>(any <dfn class="idl-code" data-dfn-for="LWorker/postMessage(message)" data-dfn-type="argument" data-export="" id="dom-lworker-postmessagemessage-message">message<a class="self-link" href="#dom-lworker-postmessagemessage-message"></a></dfn>);
+  [TreatNonCallableAsNull] attribute <a data-link-type="idl-name">Function</a>? <dfn class="idl-code" data-dfn-for="LWorker" data-dfn-type="attribute" data-export="" data-type="Function? " id="dom-lworker-onmessage">onmessage<a class="self-link" href="#dom-lworker-onmessage"></a></dfn>;
+}
+</pre>
+
+
+    <p class="issue" id="issue-1a34a695"><a class="self-link" href="#issue-1a34a695"></a> describe worker interface</p>
+
+  
+    <h3 class="heading settled" data-level="4.1" id="lworker-global"><span class="secno">4.1. </span><span class="content">The <a data-link-type="dfn">LWorkerGlobalScope</a> interface</span><a class="self-link" href="#lworker-global"></a></h3>
+
+  
+    <pre class="idl">interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lworkerglobalscope">LWorkerGlobalScope<a class="self-link" href="#lworkerglobalscope"></a></dfn> : <a data-link-type="idl-name" href="https://html.spec.whatwg.org/multipage/workers.html#dedicatedworkerglobalscope">DedicatedWorkerGlobalScope</a> {
+};
+</pre>
+
+
+    <p class="issue" id="issue-b4d466bf"><a class="self-link" href="#issue-b4d466bf"></a> describe worker global</p>
+
+
+</section>
+
+
+
+
+   <section>
+  
+    <h2 class="heading settled" data-level="5" id="algorithms"><span class="secno">5. </span><span class="content">Algorithms</span><a class="self-link" href="#algorithms"></a></h2>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.1" id="reduce-to-normal-form"><span class="secno">4.1. </span><span class="content">Label Normal Form Reduction</span><a class="self-link" href="#reduce-to-normal-form"></a></h3>
+     <h3 class="heading settled" data-level="5.1" id="reduce-to-normal-form"><span class="secno">5.1. </span><span class="content">Label Normal Form Reduction</span><a class="self-link" href="#reduce-to-normal-form"></a></h3>
      
     The <dfn data-dfn-type="dfn" data-noexport="" id="label-normal-form-reduction">label normal form reduction<a class="self-link" href="#label-normal-form-reduction"></a></dfn> algorithm takes a
     <var>label</var> argument and produces a <a data-link-type="dfn" href="#label">Label</a> value
@@ -2047,7 +2129,7 @@ influenced the computation.</p>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.2" id="subsumes-check"><span class="secno">4.2. </span><span class="content">Label Subsumption</span><a class="self-link" href="#subsumes-check"></a></h3>
+     <h3 class="heading settled" data-level="5.2" id="subsumes-check"><span class="secno">5.2. </span><span class="content">Label Subsumption</span><a class="self-link" href="#subsumes-check"></a></h3>
      
     The <dfn data-dfn-type="dfn" data-noexport="" id="label-subsumption">label subsumption<a class="self-link" href="#label-subsumption"></a></dfn> algorithm takes a two labels
     <var>A</var> and <var>B</var> and produces a boolean according to
@@ -2062,7 +2144,7 @@ influenced the computation.</p>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.3" id="label-reduce"><span class="secno">4.3. </span><span class="content">Label Downgrade</span><a class="self-link" href="#label-reduce"></a></h3>
+     <h3 class="heading settled" data-level="5.3" id="label-reduce"><span class="secno">5.3. </span><span class="content">Label Downgrade</span><a class="self-link" href="#label-reduce"></a></h3>
      
     The <dfn data-dfn-type="dfn" data-noexport="" id="label-downgrade">label downgrade<a class="self-link" href="#label-downgrade"></a></dfn> algorithm takes a label,
     <var>label</var> and a privilege<var>priv</var>, and returns
@@ -2077,7 +2159,7 @@ influenced the computation.</p>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.4" id="taint-context"><span class="secno">4.4. </span><span class="content">Context Tainting</span><a class="self-link" href="#taint-context"></a></h3>
+     <h3 class="heading settled" data-level="5.4" id="taint-context"><span class="secno">5.4. </span><span class="content">Context Tainting</span><a class="self-link" href="#taint-context"></a></h3>
      
     The <dfn data-dfn-type="dfn" data-noexport="" id="context-tainting">context tainting<a class="self-link" href="#context-tainting"></a></dfn> algorithm takes a two labels,
     <var>confidentiality</var> and <var>integrity</var>, and updates
@@ -2094,7 +2176,7 @@ influenced the computation.</p>
   
     <section>
     
-     <h3 class="heading settled" data-level="4.5" id="write-check"><span class="secno">4.5. </span><span class="content">Write Check</span><a class="self-link" href="#write-check"></a></h3>
+     <h3 class="heading settled" data-level="5.5" id="write-check"><span class="secno">5.5. </span><span class="content">Write Check</span><a class="self-link" href="#write-check"></a></h3>
      
     The <dfn data-dfn-type="dfn" data-noexport="" id="write-check0">write check<a class="self-link" href="#write-check0"></a></dfn> algorithm takes a two labels,
     <var>confidentiality</var> and <var>integrity</var>, and returns
@@ -2215,7 +2297,7 @@ influenced the computation.</p>
    <li>context confidentiality label, <a href="#context-confidentiality-label">3.3</a>
    <li>context integrity label, <a href="#context-integrity-label">3.3</a>
    <li>context privilege, <a href="#context-privilege">3.3</a>
-   <li>context tainting, <a href="#context-tainting">4.4</a>
+   <li>context tainting, <a href="#context-tainting">5.4</a>
    <li>COWL
     <ul>
      <li>(interface), <a href="#cowl">3.3</a>
@@ -2248,6 +2330,7 @@ influenced the computation.</p>
    <li>equivalent, <a href="#equivalent">2.1</a>
    <li>FreshPrivilege(), <a href="#dom-privilege-freshprivilege">3.2.1</a>
    <li>fromJSON(obj), <a href="#dom-label-fromjsonobj">3.1</a>
+   <li>initState, <a href="#dom-lworker-lworkerscripturl-initstate-initstate">4</a>
    <li>integrity
     <ul>
      <li>attribute for COWL, <a href="#dom-cowl-integrity">3.3.1</a>
@@ -2264,15 +2347,19 @@ influenced the computation.</p>
      <li>definition of, <a href="#label">2.1</a>
      <li>argument for Privilege/delegate(label), <a href="#dom-privilege-delegatelabel-label">3.2</a>
     </ul>
-   <li>label downgrade, <a href="#label-downgrade">4.3</a>
+   <li>label downgrade, <a href="#label-downgrade">5.3</a>
    <li>LabeledObject, <a href="#labeledobject">3.4</a>
    <li>LabeledObject(obj, labels), <a href="#dom-labeledobject-labeledobjectobj-labels">3.4.1</a>
    <li>labeled objects, <a href="#labeled-objects">2.1</a>
-   <li>label normal form reduction, <a href="#label-normal-form-reduction">4.1</a>
+   <li>label normal form reduction, <a href="#label-normal-form-reduction">5.1</a>
    <li>Label(origin), <a href="#dom-label-labelorigin">3.1.1</a>
    <li>labels, <a href="#dom-labeledobject-labeledobjectobj-labels-labels">3.4</a>
    <li>label set, <a href="#label-set">3.1</a>
-   <li>label subsumption, <a href="#label-subsumption">4.2</a>
+   <li>label subsumption, <a href="#label-subsumption">5.2</a>
+   <li>LWorker, <a href="#lworker">4</a>
+   <li>LWorkerGlobalScope, <a href="#lworkerglobalscope">4.1</a>
+   <li>LWorker(scriptURL, initState), <a href="#dom-lworker-lworkerscripturl-initstate">4</a>
+   <li>message, <a href="#dom-lworker-postmessagemessage-message">4</a>
    <li>newLabels, <a href="#dom-labeledobject-clonenewlabels-newlabels">3.4</a>
    <li>normal form, <a href="#normal-form">2.1</a>
    <li>obj
@@ -2280,6 +2367,7 @@ influenced the computation.</p>
      <li>argument for Label/fromJSON(obj), <a href="#dom-label-fromjsonobj-obj">3.1</a>
      <li>argument for LabeledObject/LabeledObject(obj, labels), <a href="#dom-labeledobject-labeledobjectobj-labels-obj">3.4</a>
     </ul>
+   <li>onmessage, <a href="#dom-lworker-onmessage">4</a>
    <li>origin, <a href="#dom-label-labelorigin-origin">3.1</a>
    <li>origin label, <a href="#origin-label">2.1</a>
    <li>_or((Label or DOMString) other), <a href="#dom-label-_orlabel-or-domstring-other">3.1.2</a>
@@ -2293,6 +2381,7 @@ influenced the computation.</p>
      <li>argument for Privilege/combine(other), <a href="#dom-privilege-combineother-other">3.2</a>
     </ul>
    <li>ownership, <a href="#ownership">2.2</a>
+   <li>postMessage(message), <a href="#dom-lworker-postmessagemessage">4</a>
    <li>Privilege, <a href="#privilege0">3.2</a>
    <li>privilege
     <ul>
@@ -2303,14 +2392,19 @@ influenced the computation.</p>
    <li>protectedObject, <a href="#dom-labeledobject-protectedobject">3.4.2</a>
    <li>protected
       object, <a href="#protected-object">3.4</a>
+   <li>scriptURL, <a href="#dom-lworker-lworkerscripturl-initstate-scripturl">4</a>
    <li>subsumes, <a href="#subsumes">2.1</a>
    <li>subsumes(other), <a href="#dom-label-subsumesother">3.1.2</a>
    <li>tainted, <a href="#tainted">2.1</a>
    <li>toJSON(), <a href="#dom-label-tojson">3.1</a>
    <li>unprivileged, <a href="#unprivileged">3.2</a>
-   <li>write check, <a href="#write-check0">4.5</a></ul>
+   <li>write check, <a href="#write-check0">5.5</a></ul>
   <h3 class="no-num heading settled" id="index-defined-elsewhere"><span class="content">Terms defined by reference</span><a class="self-link" href="#index-defined-elsewhere"></a></h3>
   <ul class="indexlist">
+   <li><a data-link-type="biblio" href="#biblio-cors">[cors]</a> defines the following terms:
+    <ul>
+     <li><a href="http://www.w3.org/TR/cors/#access-control-allow-origin-response-header">access-control-allow-origin</a>
+    </ul>
    <li><a data-link-type="biblio" href="#biblio-html5">[html5]</a> defines the following terms:
     <ul>
      <li><a href="http://www.w3.org/TR/html5/browsers.html#windows">browsing context</a>
@@ -2336,10 +2430,12 @@ influenced the computation.</p>
     </ul>
    <li><a data-link-type="biblio" href="#biblio-dom-ls">[dom-ls]</a> defines the following terms:
     <ul>
+     <li><a href="http://dom.spec.whatwg.org/#eventtarget">EventTarget</a>
      <li><a href="http://dom.spec.whatwg.org/#concept-document-url">url</a>
     </ul>
    <li><a data-link-type="biblio" href="#biblio-html">[HTML]</a> defines the following terms:
     <ul>
+     <li><a href="https://html.spec.whatwg.org/multipage/workers.html#dedicatedworkerglobalscope">DedicatedWorkerGlobalScope</a>
      <li><a href="https://html.spec.whatwg.org/multipage/scripting.html#script">script</a>
     </ul></ul>
   <h2 class="no-num heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
@@ -2353,6 +2449,8 @@ influenced the computation.</p>
    <dd>Adam Barth. <a href="http://www.ietf.org/rfc/rfc6454.txt">The Web Origin Concept</a>. RFC. URL: <a href="http://www.ietf.org/rfc/rfc6454.txt">http://www.ietf.org/rfc/rfc6454.txt</a>
    <dt id="biblio-url"><a class="self-link" href="#biblio-url"></a>[URL]
    <dd>Anne van Kesteren; Sam Ruby. <a href="http://www.w3.org/TR/url">URL</a>. WD. URL: <a href="http://www.w3.org/TR/url">http://www.w3.org/TR/url</a>
+   <dt id="biblio-cors"><a class="self-link" href="#biblio-cors"></a>[CORS]
+   <dd>Anne van Kesteren. <a href="http://www.w3.org/TR/cors/">Cross-Origin Resource Sharing</a>. 16 January 2014. REC. URL: <a href="http://www.w3.org/TR/cors/">http://www.w3.org/TR/cors/</a>
    <dt id="biblio-dom-ls"><a class="self-link" href="#biblio-dom-ls"></a>[DOM-LS]
    <dd>Document Object Model URL: <a href="http://dom.spec.whatwg.org/">http://dom.spec.whatwg.org/</a>
    <dt id="biblio-html5"><a class="self-link" href="#biblio-html5"></a>[HTML5]
@@ -2363,6 +2461,8 @@ influenced the computation.</p>
    <dd>Ian Hickson. <a href="http://www.w3.org/TR/webmessaging/">HTML5 Web Messaging</a>. 19 May 2015. REC. URL: <a href="http://www.w3.org/TR/webmessaging/">http://www.w3.org/TR/webmessaging/</a></dl>
   <h3 class="no-num heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
+   <dt id="biblio-cowl-osdi"><a class="self-link" href="#biblio-cowl-osdi"></a>[COWL-OSDI]
+   <dd>Deian Stefan; et al. <a href="https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-stefan.pdf">Protecting Users by Confining JavaScript with COWL</a>. URL: <a href="https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-stefan.pdf">https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-stefan.pdf</a>
    <dt id="biblio-dclabels"><a class="self-link" href="#biblio-dclabels"></a>[DCLabels]
    <dd>Deian Stefan; et al. <a href="http://www.scs.stanford.edu/~deian/pubs/stefan:2011:dclabels.pdf">Disjunction Category Labels</a>. URL: <a href="http://www.scs.stanford.edu/~deian/pubs/stefan:2011:dclabels.pdf">http://www.scs.stanford.edu/~deian/pubs/stefan:2011:dclabels.pdf</a></dl>
   <h2 class="no-num heading settled" id="idl-index"><span class="content">IDL Index</span><a class="self-link" href="#idl-index"></a></h2>
@@ -2411,10 +2511,18 @@ interface <a href="#labeledobject">LabeledObject</a> {
   [Throws] <a data-link-type="idl-name" href="#labeledobject">LabeledObject</a> <a href="#dom-labeledobject-clonenewlabels">clone</a>(<a data-link-type="idl-name" href="#dictdef-cilabel">CILabel</a> <a href="#dom-labeledobject-clonenewlabels-newlabels">newLabels</a>);
 };
 
+[<a href="#dom-lworker-lworkerscripturl-initstate">Constructor</a>(DOMString <a href="#dom-lworker-lworkerscripturl-initstate-scripturl">scriptURL</a>, <a data-link-type="idl-name">InitCOWLstate</a>? <a href="#dom-lworker-lworkerscripturl-initstate-initstate">initState</a>)]
+interface <a href="#lworker">LWorker</a> : <a data-link-type="idl-name" href="http://dom.spec.whatwg.org/#eventtarget">EventTarget</a> {
+  void <a href="#dom-lworker-postmessagemessage">postMessage</a>(any <a href="#dom-lworker-postmessagemessage-message">message</a>);
+  [TreatNonCallableAsNull] attribute <a data-link-type="idl-name">Function</a>? <a data-type="Function? " href="#dom-lworker-onmessage">onmessage</a>;
+}
+
+interface <a href="#lworkerglobalscope">LWorkerGlobalScope</a> : <a data-link-type="idl-name" href="https://html.spec.whatwg.org/multipage/workers.html#dedicatedworkerglobalscope">DedicatedWorkerGlobalScope</a> {
+};
+
 </pre>
   <h2 class="no-num heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
-   <div class="issue"> describe client-side mint or encrypted document editor.<a href="#issue-93214987"> ↵ </a></div>
    <div class="issue"> describe how to drop privileges.<a href="#issue-1281a278"> ↵ </a></div>
    <div class="issue"> describe how page can be divided into components with
   different privileges.<a href="#issue-c5e66481"> ↵ </a></div>
@@ -2427,10 +2535,12 @@ interface <a href="#labeledobject">LabeledObject</a> {
    <div class="issue"> for discussion: should privileges be used explicitly
       instead?<a href="#issue-e1bb8a0a"> ↵ </a></div>
    <div class="issue"> describe <code>clone</code><a href="#issue-8d80fc2e"> ↵ </a></div>
-   <div class="issue"> describe response header grammar
-    ISSUE: describe how response header is processes
-    ISSUE: describe how labeled headers and XHR work<a href="#issue-4fe82c66"> ↵ </a></div>
+   <div class="issue"> describe response header grammar<a href="#issue-e30b85a5"> ↵ </a></div>
+   <div class="issue"> describe how response header is processes<a href="#issue-f4bc3b24"> ↵ </a></div>
+   <div class="issue"> describe how labeled headers and XHR work<a href="#issue-8027d210"> ↵ </a></div>
    <div class="issue"> describe request header grammar<a href="#issue-1d09bad5"> ↵ </a></div>
+   <div class="issue"> describe worker interface<a href="#issue-1a34a695"> ↵ </a></div>
+   <div class="issue"> describe worker global<a href="#issue-b4d466bf"> ↵ </a></div>
    <div class="issue"> describe the reduction algorithm<a href="#issue-a82506bb"> ↵ </a></div>
    <div class="issue"> describe the subsumes algorithm<a href="#issue-3dc7e411"> ↵ </a></div>
    <div class="issue"> describe downgrade<a href="#issue-c98f93fc"> ↵ </a></div>

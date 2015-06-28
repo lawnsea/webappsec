@@ -435,7 +435,70 @@ checker.postMessage(labeledPassword, "https://untrusted.com");
      
 
 
-     <p class="issue" id="issue-16a3a7bf"><a class="self-link" href="#issue-16a3a7bf"></a> describe use of workers</p>
+     <p>Rather than include a library inline using a <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script">script</a></code> element, an
+  author wishes to use a library without completely trusting it. The
+  author can load the library in a separate iframe and use COWL to
+  confine the code as shown in the previous example.  Unfortunately,
+  creating many iframes is costly. (It also requires the author to
+  address subtle issues, such as ensuring the iframe is of a different
+  <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a>.) Hence, COWL provides <a data-link-type="dfn">light-weight Workers</a> as
+  a both a lighter-weight and safer (since it does not have the wide
+  attack surface of iframes—e.g., the DOM) primitive for loading
+  scripts.</p>
+     
+
+  
+     <div class="example" id="example-6d7592c3"><a class="self-link" href="#example-6d7592c3"></a>
+
+
+      <p>Consider a modification to the above <a href="#example-checker">
+      password-checker example</a> that uses <a data-link-type="dfn">light-weight
+      Workers</a> to isolate and confine the checker script. The
+    author of <code>https://example.com</code> can load the script an
+    <a data-link-type="dfn" href="#unprivileged">unprivileged</a> context (ensuring it does not have the
+    <a data-link-type="dfn" href="#privilege">privilege</a> to arbitrarily leak
+    <code>https://example.com</code> data) and communicate with via
+    message passing, much as in the previous example:</p>
+      
+
+    
+      <pre><code>// Load the checker script in an unprivileged light-weight Worker:
+var checker = new <a class="idl-code" data-link-type="interface">LWorker</a>("https://untrusted.com/checker.js", { privilege: new <a data-link-type="functionish" href="#dom-privilege-privilege">Privilege()</a> });
+
+// Register a handler, waiting for the result from the checker:
+checker.onmessage = function (event) {
+  alert("Your password is: " + event.data);
+};
+
+// Send the checker the password, first associating a label with it:
+checker.postMessage(new <a class="idl-code" data-link-type="interface" href="#labeledobject">LabeledObject</a>(password, 
+                                      {confidentiality: new <a class="idl-code" data-link-type="interface" href="#label1">Label</a>(window.location.origin)});
+</code></pre>
+      
+
+      <p>Because all communication with Workers is done via message
+    passing, the author of <code>checker.js</code> would,
+    unfortunately, have to (re)write their library to the asynchronous
+    model. An example is given below:</p>
+      
+    
+      <pre><code>// Fetch any data necessary to perform the computation
+onmessage = function(event) {
+  // ... can still fetch data from the network
+
+  // Get password from the <a data-link-type="functionish" href="#dom-labeledobject-labeledobjectobj-labels">LabeledObject()</a>:
+  var password = event.data.protectedObject;
+
+  // ... can only communicate according to label, i.e., to https://example.com
+
+  // Reply to parent:
+  postMessage(checkStrength(password));
+};
+</code></pre>
+      
+
+  
+     </div>
      
 
   
@@ -1104,6 +1167,13 @@ b.subsumes(aOrb) === true;
     argument.</p>
      
 
+
+     <p>A privilege is said to be an <dfn data-dfn-type="dfn" data-noexport="" id="empty-privilege">empty privilege<a class="self-link" href="#empty-privilege"></a></dfn> if its
+    <a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a> is the <a data-link-type="dfn" href="#empty-label">empty label</a>. A
+    context is said to be <dfn data-dfn-type="dfn" data-noexport="" id="unprivileged">unprivileged<a class="self-link" href="#unprivileged"></a></dfn> if its context label
+    is the <a data-link-type="dfn" href="#empty-privilege">empty privilege</a>.</p>
+     
+
     
      <pre class="idl">[<a class="idl-code" data-link-type="constructor" href="#dom-privilege-privilege">Constructor</a>, <a class="idl-code" data-link-type="constructor" href="#dom-privilege-freshprivilege">NamedConstructor</a>=<a data-link-type="idl-name">FreshPrivilege</a>]
 interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="privilege0">Privilege<a class="self-link" href="#privilege0"></a></dfn> {
@@ -1261,7 +1331,7 @@ the <a class="idl-code" data-link-type="argument" href="#dom-privilege-combineot
       not restrict the context from communicating—and thus
       accidentally leak that object’s contents—to another origin.
       To prevent such bugs, the author can drop the privilege by
-      setting the <a data-link-type="dfn" href="#current-privilege">current privilege</a> to an <a data-link-type="dfn">empty
+      setting the <a data-link-type="dfn" href="#current-privilege">current privilege</a> to an <a data-link-type="dfn" href="#empty-privilege">empty
       privilege</a>:</p>
       
       
@@ -2172,6 +2242,7 @@ influenced the computation.</p>
    <li>effective confidentiality label, <a href="#effective-confidentiality-label">2.2</a>
    <li>effective integrity label, <a href="#effective-integrity-label">2.2</a>
    <li>empty label, <a href="#empty-label">3.1</a>
+   <li>empty privilege, <a href="#empty-privilege">3.2</a>
    <li>enable(), <a href="#dom-cowl-enable">3.3.2</a>
    <li>equals(other), <a href="#dom-label-equalsother">3.1.2</a>
    <li>equivalent, <a href="#equivalent">2.1</a>
@@ -2236,6 +2307,7 @@ influenced the computation.</p>
    <li>subsumes(other), <a href="#dom-label-subsumesother">3.1.2</a>
    <li>tainted, <a href="#tainted">2.1</a>
    <li>toJSON(), <a href="#dom-label-tojson">3.1</a>
+   <li>unprivileged, <a href="#unprivileged">3.2</a>
    <li>write check, <a href="#write-check0">4.5</a></ul>
   <h3 class="no-num heading settled" id="index-defined-elsewhere"><span class="content">Terms defined by reference</span><a class="self-link" href="#index-defined-elsewhere"></a></h3>
   <ul class="indexlist">
@@ -2342,7 +2414,6 @@ interface <a href="#labeledobject">LabeledObject</a> {
 </pre>
   <h2 class="no-num heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
-   <div class="issue"> describe use of workers<a href="#issue-16a3a7bf"> ↵ </a></div>
    <div class="issue"> describe client-side mint or encrypted document editor.<a href="#issue-93214987"> ↵ </a></div>
    <div class="issue"> describe how to drop privileges.<a href="#issue-1281a278"> ↵ </a></div>
    <div class="issue"> describe how page can be divided into components with

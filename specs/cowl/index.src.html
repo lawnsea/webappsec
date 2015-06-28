@@ -233,7 +233,62 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <h4 id="examples-checker-worker">Untrusted library</h4>
 
-  ISSUE: describe use of workers
+  Rather than include a library inline using a <{script}> element, an
+  author wishes to use a library without completely trusting it. The
+  author can load the library in a separate iframe and use COWL to
+  confine the code as shown in the previous example.  Unfortunately,
+  creating many iframes is costly. (It also requires the author to
+  address subtle issues, such as ensuring the iframe is of a different
+  <a>origin</a>.) Hence, COWL provides <a>light-weight Workers</a> as
+  a both a lighter-weight and safer (since it does not have the wide
+  attack surface of iframes&mdash;e.g., the DOM) primitive for loading
+  scripts.
+
+  <div class="example">
+
+    Consider a modification to the above <a href="#example-checker">
+      password-checker example</a> that uses <a>light-weight
+      Workers</a> to isolate and confine the checker script. The
+    author of <code>https://example.com</code> can load the script an
+    <a>unprivileged</a> context (ensuring it does not have the
+    <a>privilege</a> to arbitrarily leak
+    <code>https://example.com</code> data) and communicate with via
+    message passing, much as in the previous example:
+
+    <pre><code>
+    // Load the checker script in an unprivileged light-weight Worker:
+    var checker = new <a
+    interface>LWorker</a>("https://untrusted.com/checker.js", { privilege: new <a>Privilege()</a> });
+
+    // Register a handler, waiting for the result from the checker:
+    checker.onmessage = function (event) {
+      alert("Your password is: " + event.data);
+    };
+
+    // Send the checker the password, first associating a label with it:
+    checker.postMessage(new <a interface>LabeledObject</a>(password, 
+                                          {confidentiality: new <a interface>Label</a>(window.location.origin)});
+    </code></pre>
+    Because all communication with Workers is done via message
+    passing, the author of <code>checker.js</code> would,
+    unfortunately, have to (re)write their library to the asynchronous
+    model. An example is given below:
+    <pre><code>
+    // Fetch any data necessary to perform the computation
+    onmessage = function(event) {
+      // ... can still fetch data from the network
+
+      // Get password from the <a>LabeledObject()</a>:
+      var password = event.data.protectedObject;
+
+      // ... can only communicate according to label, i.e., to https://example.com
+
+      // Reply to parent:
+      postMessage(checkStrength(password));
+    };
+    </code></pre>
+
+  </div>
 
   <h4 id="examples-mashup">Third-party mashup</h4>
 
@@ -693,6 +748,11 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
     <a>combine()</a> method on <var>A</var> (respectively,
     <var>B</var>) with <var>B</var> (respectively, <var>A</var>) as an
     argument.
+
+    A privilege is said to be an <dfn>empty privilege</dfn> if its
+    <a>internal privilege label</a> is the <a>empty label</a>. A
+    context is said to be <dfn>unprivileged</dfn> if its context label
+    is the <a>empty privilege</a>.
 
     <pre class="idl">
       [Constructor, NamedConstructor=FreshPrivilege]

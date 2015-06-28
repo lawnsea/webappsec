@@ -177,12 +177,11 @@ privilege-separated, compartmentalized applications.</p>
       <li><a href="#goals"><span class="secno">1.1</span> <span class="content">Goals</span></a>
       <li><a href="#examples"><span class="secno">1.2</span> <span class="content">Use Cases/Examples</span></a>
        <ul class="toc">
-        <li><a href="#examples-checker"><span class="secno">1.2.1</span> <span class="content">Untrusted service</span></a>
-        <li><a href="#examples-checker-worker"><span class="secno">1.2.2</span> <span class="content">Untrusted library</span></a>
-        <li><a href="#examples-mashup"><span class="secno">1.2.3</span> <span class="content">Third-party untrusted mashup</span></a>
-        <li><a href="#examples-leastpriv"><span class="secno">1.2.4</span> <span class="content">Least-privileged content</span></a>
-        <li><a href="#examples-privsep"><span class="secno">1.2.5</span> <span class="content">Privilege separation</span></a>
-        <li><a href="#examples-isolation"><span class="secno">1.2.6</span> <span class="content">User isolation</span></a>
+        <li><a href="#untrusted-services"><span class="secno">1.2.1</span> <span class="content">Untrusted services</span></a>
+        <li><a href="#untrusted-libraries"><span class="secno">1.2.2</span> <span class="content">Untrusted libraries</span></a>
+        <li><a href="#examples-mashup"><span class="secno">1.2.3</span> <span class="content">Third-party untrusted mashups</span></a>
+        <li><a href="#examples-isolation"><span class="secno">1.2.4</span> <span class="content">Content isolation/privilege separation</span></a>
+        <li><a href="#examples-leastpriv"><span class="secno">1.2.5</span> <span class="content">Least-privileged content</span></a>
        </ul>
       <li><a href="#trust-model"><span class="secno">1.3</span> <span class="content">Trust Model</span></a>
      </ul>
@@ -375,7 +374,7 @@ which have the same privileges as content.</p>
      <h3 class="heading settled" data-level="1.2" id="examples"><span class="secno">1.2. </span><span class="content">Use Cases/Examples</span><a class="self-link" href="#examples"></a></h3>
      
   
-     <h4 class="heading settled" data-level="1.2.1" id="examples-checker"><span class="secno">1.2.1. </span><span class="content">Untrusted service</span><a class="self-link" href="#examples-checker"></a></h4>
+     <h4 class="heading settled" data-level="1.2.1" id="untrusted-services"><span class="secno">1.2.1. </span><span class="content">Untrusted services</span><a class="self-link" href="#untrusted-services"></a></h4>
      
 
 
@@ -443,7 +442,7 @@ checker.postMessage(labeledPassword, "https://untrusted.com");
      
 
   
-     <h4 class="heading settled" data-level="1.2.2" id="examples-checker-worker"><span class="secno">1.2.2. </span><span class="content">Untrusted library</span><a class="self-link" href="#examples-checker-worker"></a></h4>
+     <h4 class="heading settled" data-level="1.2.2" id="untrusted-libraries"><span class="secno">1.2.2. </span><span class="content">Untrusted libraries</span><a class="self-link" href="#untrusted-libraries"></a></h4>
      
 
 
@@ -514,7 +513,7 @@ onmessage = function(event) {
      
 
   
-     <h4 class="heading settled" data-level="1.2.3" id="examples-mashup"><span class="secno">1.2.3. </span><span class="content">Third-party untrusted mashup</span><a class="self-link" href="#examples-mashup"></a></h4>
+     <h4 class="heading settled" data-level="1.2.3" id="examples-mashup"><span class="secno">1.2.3. </span><span class="content">Third-party untrusted mashups</span><a class="self-link" href="#examples-mashup"></a></h4>
      
 
 
@@ -554,30 +553,86 @@ onmessage = function(event) {
      
 
   
-     <h4 class="heading settled" data-level="1.2.4" id="examples-leastpriv"><span class="secno">1.2.4. </span><span class="content">Least-privileged content</span><a class="self-link" href="#examples-leastpriv"></a></h4>
+     <h4 class="heading settled" data-level="1.2.4" id="examples-isolation"><span class="secno">1.2.4. </span><span class="content">Content isolation/privilege separation</span><a class="self-link" href="#examples-isolation"></a></h4>
+     
+
+
+     <p>A server operator wishes to isolate content (e.g., of different
+  users) while serving it from a single physical <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a>. COWL’s
+  <a data-link-type="dfn" href="#privilege">privileges</a> can be understood as a generalization of the
+  <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a> concept, over which authors have explicit control.
+  In particular, when serving content, an author can specify that the
+  content’s <a data-link-type="dfn" href="#context-privilege">context privilege</a> should be a weaker, <a data-link-type="dfn" href="#delegated-privilege">delegated
+  privilege</a>, different from the <a data-link-type="dfn" href="#privilege">privilege</a> corresponding
+  to the physical <a data-link-type="dfn" href="https://tools.ietf.org/html/rfc6454#section-3.2">origin</a>.</p>
+     
+
+  
+     <div class="example" id="example-5814e4b6"><a class="self-link" href="#example-5814e4b6"></a>
+    Suppose <code>https://university.edu</code> wished to isolate
+    different parts of their site, for example, according to the
+    users. The server operator can drop the privilege of a page when
+    serving content by providing a response header field named
+    <code>COWL</code> (see <a href="#response-header">§3.5 The COWL HTTP Response Header Field</a>), whose value contains
+    the weaker serialized <a data-link-type="dfn" href="#privilege">privilege</a>. For example, for any
+    resources under <code>https://university.edu/~user1</code>, the
+    following header should be set:
+
+    
+      <pre><code><a href="#response-header">COWL</a>: privilege: [ ['self', 'cowl://user1'] ]
+</code></pre>
+      
+
+
+      <p>This ensures that content cannot interfere with
+    <code>https://university.edu</code> or another user’s content,
+    e.g.  <code>https://university.edu/~user2</code>.  For example,
+    the content cannot modify <code>https://university.edu</code>
+    cookies or DOM. Similarly, it cannot leak data sensitive to
+    another user (e.g., <code>user2</code>).</p>
+      
+
+
+      <p>Of course, this requires the server operator to properly label
+    other data (e.g., when sending it to the client).
+    The <code>COWL</code> request header (see <a href="#request-header">§3.6 The COWL HTTP Request Header Field</a>),
+    helps authors appropriately label responses by providing author’s
+    with the context’s <a data-link-type="dfn" href="#cowl-state">COWL state</a>.</p>
+      
+
+    
+      <div class="note" role="note">
+      Sub-domains should be used where possible to ensure
+      isolation. Nevertheless, COWL’s labels can serve as another
+      layer of defense.
+    </div>
+      
+
+
+      <p>An alternative to using headers is to use the COWL JavaScript API
+    (see <a href="#context-labels">§3.3 Labeled Contexts and Workers Interface</a>), as shown by the <a href="#university-example-js">content isolation in JavaScript</a>
+    example.</p>
+      
+  
+     </div>
+     
+
+
+     <p>This use case is an instance of privilege separation; COWL’s
+  <a data-link-type="dfn" href="#privilege">privileges</a> and <a data-link-type="dfn" href="#label">labels</a> can more-generally be used to
+  run different iframes, Workers, etc. with <a data-link-type="dfn" href="#delegated-privilege">delegated
+  privileges</a>.</p>
+     
+
+
+  
+     <h4 class="heading settled" data-level="1.2.5" id="examples-leastpriv"><span class="secno">1.2.5. </span><span class="content">Least-privileged content</span><a class="self-link" href="#examples-leastpriv"></a></h4>
      
 
 
      <p class="issue" id="issue-1281a278"><a class="self-link" href="#issue-1281a278"></a> describe how to drop privileges.</p>
      
 
-  
-     <h4 class="heading settled" data-level="1.2.5" id="examples-privsep"><span class="secno">1.2.5. </span><span class="content">Privilege separation</span><a class="self-link" href="#examples-privsep"></a></h4>
-     
-
-
-     <p class="issue" id="issue-c5e66481"><a class="self-link" href="#issue-c5e66481"></a> describe how page can be divided into components with
-  different privileges.</p>
-     
-
-  
-     <h4 class="heading settled" data-level="1.2.6" id="examples-isolation"><span class="secno">1.2.6. </span><span class="content">User isolation</span><a class="self-link" href="#examples-isolation"></a></h4>
-     
-
-
-     <p class="issue" id="issue-0e427243"><a class="self-link" href="#issue-0e427243"></a> describe how to privileges can be delegated and used to
-  isolate different users of a web site.</p>
-     
 
   
     </section>
@@ -857,6 +912,13 @@ object was not tampered by <code>https://b.com</code>.</p>
       privilege</em>.</p>
       
 
+    
+     
+    
+     <li>
+      A privilege <var>P1</var> is a <dfn data-dfn-type="dfn" data-noexport="" id="delegated-privilege">delegated privilege<a class="self-link" href="#delegated-privilege"></a></dfn> of
+      <var>P2</var> if <var>P2</var>’s <a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a>
+      subsumes <var>P1</var>’s <a data-link-type="dfn" href="#internal-privilege-label">internal privilege label</a>.
     
      
     
@@ -1431,7 +1493,7 @@ checker.postMessage(labeledPassword, "https://untrusted.com");
      
 
     
-     <div class="example" id="example-dae4fb30"><a class="self-link" href="#example-dae4fb30"></a>
+     <div class="example" id="university-example-js"><a class="self-link" href="#university-example-js"></a>
       Suppose <code>https://university.edu</code> wished to isolate
       different parts of their site, for example, according to the
       users. The author can drop the privilege of a page
@@ -1468,6 +1530,11 @@ COWL.privilege = COWL.privilege.delegate(user1);
       <p class="note" role="note">Note, sub-domains should be used where possible to ensure
       isolation. Nevertheless, COWL’s labels can serve as another
       layer of defense.</p>
+      
+
+
+      <p><a href="#examples-isolation">§1.2.4 Content isolation/privilege separation</a> shows how to implement this example
+      using the <code>COWL</code> response header.</p>
       
     
      </div>
@@ -1736,13 +1803,13 @@ integrity label</a> to <var>int</var></p>
 privilege</a>.</p>
          
 
-</ul>
-       <ul>
+
         <li data-md="">
          <p>On setting, the user agent MUST enable <a data-link-type="dfn" href="#confinement-mode">confinement mode</a>
 and set the <a data-link-type="dfn" href="#current-privilege">current privilege</a> to the set privilege.</p>
          
 </ul>
+             
       
     
      </dl>
@@ -2315,6 +2382,7 @@ interface <dfn class="idl-code" data-dfn-type="interface" data-export="" id="lwo
     state, <a href="#default-cowl-state">3.3</a>
    <li>default integrity label, <a href="#default-integrity-label">3.3</a>
    <li>default privilege, <a href="#default-privilege">3.3</a>
+   <li>delegated privilege, <a href="#delegated-privilege">2.2</a>
    <li>delegate(label)
     <ul>
      <li>method for Privilege, <a href="#dom-privilege-delegatelabel">3.2</a>
@@ -2524,10 +2592,6 @@ interface <a href="#lworkerglobalscope">LWorkerGlobalScope</a> : <a data-link-ty
   <h2 class="no-num heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
    <div class="issue"> describe how to drop privileges.<a href="#issue-1281a278"> ↵ </a></div>
-   <div class="issue"> describe how page can be divided into components with
-  different privileges.<a href="#issue-c5e66481"> ↵ </a></div>
-   <div class="issue"> describe how to privileges can be delegated and used to
-  isolate different users of a web site.<a href="#issue-0e427243"> ↵ </a></div>
    <div class="issue"> Current WebIDL implementation requires an underscore for
     certain identifiers. Can we rename <code>_or</code> to
     <code>or</code>?<a href="#issue-afa876b4"> ↵ </a></div>

@@ -190,7 +190,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   <section>
   <h3 id="examples">Use Cases/Examples</h3>
-  <h4 id="examples-checker">Untrusted service</h4>
+  <h4>Untrusted services</h4>
 
   An author wishes to use a service (e.g., in the form of an iframe)
   without trusting it (or its dependencies) to not leak their
@@ -244,7 +244,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   to implement safe encrypted document editors. The original COWL
   academic paper describes several such use cases [[COWL-OSDI]]
 
-  <h4 id="examples-checker-worker">Untrusted library</h4>
+  <h4>Untrusted libraries</h4>
 
   Rather than include a library inline using a <{script}> element, an
   author wishes to use a library without completely trusting it. The
@@ -303,7 +303,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
 
   </div>
 
-  <h4 id="examples-mashup">Third-party untrusted mashup</h4>
+  <h4 id="examples-mashup">Third-party untrusted mashups</h4>
 
   A server operator wishes to provide third-party mashups access to
   user data. In addition to using CORS response to restrict the
@@ -332,20 +332,67 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
   the code's ability to disseminate the data to
   <code>https://a.com</code>.
   </div>
+
+  <h4 id="examples-isolation">Content isolation/privilege separation</h4>
+
+  A server operator wishes to isolate content (e.g., of different
+  users) while serving it from a single physical <a>origin</a>. COWL's
+  <a>privileges</a> can be understood as a generalization of the
+  <a>origin</a> concept, over which authors have explicit control.
+  In particular, when serving content, an author can specify that the
+  content's <a>context privilege</a> should be a weaker, <a>delegated
+  privilege</a>, different from the <a>privilege</a> corresponding
+  to the physical <a>origin</a>.
+
+  <div class="example">
+    Suppose <code>https://university.edu</code> wished to isolate
+    different parts of their site, for example, according to the
+    users. The server operator can drop the privilege of a page when
+    serving content by providing a response header field named
+    <code>COWL</code> (see [[#response-header]]), whose value contains
+    the weaker serialized <a>privilege</a>. For example, for any
+    resources under <code>https://university.edu/~user1</code>, the
+    following header should be set:
+
+    <pre><code>
+     <a href="#response-header">COWL</a>: privilege: [ ['self', 'cowl://user1'] ]
+    </code></pre>
+
+    This ensures that content cannot interfere with
+    <code>https://university.edu</code> or another user's content,
+    e.g.  <code>https://university.edu/~user2</code>.  For example,
+    the content cannot modify <code>https://university.edu</code>
+    cookies or DOM. Similarly, it cannot leak data sensitive to
+    another user (e.g., <code>user2</code>).
+
+    Of course, this requires the server operator to properly label
+    other data (e.g., when sending it to the client).
+    The <code>COWL</code> request header (see [[#request-header]]),
+    helps authors appropriately label responses by providing author's
+    with the context's <a>COWL state</a>.
+
+    <div class="note">
+      Sub-domains should be used where possible to ensure
+      isolation. Nevertheless, COWL's labels can serve as another
+      layer of defense.
+    </div>
+
+    An alternative to using headers is to use the COWL JavaScript API
+    (see [[#context-labels]]), as shown by the <a
+    href="#university-example-js">content isolation in JavaScript</a>
+    example.
+  </div>
+
+  This use case is an instance of privilege separation; COWL's
+  <a>privileges</a> and <a>labels</a> can more-generally be used to
+  run different iframes, Workers, etc. with <a>delegated
+  privileges</a>.
+  
   
   <h4 id="examples-leastpriv">Least-privileged content</h4>
 
   ISSUE: describe how to drop privileges.
 
-  <h4 id="examples-privsep">Privilege separation</h4>
-
-  ISSUE: describe how page can be divided into components with
-  different privileges.
-
-  <h4 id="examples-isolation">User isolation</h4>
-
-  ISSUE: describe how to privileges can be delegated and used to
-  isolate different users of a web site.
 
   </section>
   <section>
@@ -556,6 +603,11 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       privilege</a> of a context to ensure that it runs with <em>least
       privilege</em>.
 
+    </li>
+    <li>
+      A privilege <var>P1</var> is a <dfn>delegated privilege</dfn> of
+      <var>P2</var> if <var>P2</var>'s <a>internal privilege label</a>
+      subsumes <var>P1</var>'s <a>internal privilege label</a>.
     </li>
     <li>
       The <dfn>current privilege</dfn> is the privilege associated
@@ -931,7 +983,7 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       (result) arbitrarily.
     </div>
 
-    <div class="example">
+    <div id="university-example-js" class="example">
       Suppose <code>https://university.edu</code> wished to isolate
       different parts of their site, for example, according to the
       users. The author can drop the privilege of a page
@@ -962,6 +1014,9 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
       Note, sub-domains should be used where possible to ensure
       isolation. Nevertheless, COWL's labels can serve as another
       layer of defense.
+
+      [[#examples-isolation]] shows how to implement this example
+      using the <code>COWL</code> response header.
     </div>
 
   </section>
@@ -1106,8 +1161,8 @@ spec: RFC7159; urlPrefix: https://tools.ietf.org/html/rfc4627
         * On getting, the user agent MUST return the <a>current
         privilege</a>.
 
-      * On setting, the user agent MUST enable <a>confinement mode</a>
-      and set the <a>current privilege</a> to the set privilege.
+        * On setting, the user agent MUST enable <a>confinement mode</a>
+        and set the <a>current privilege</a> to the set privilege.
       </dd>
     </dl>
 
